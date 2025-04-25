@@ -1,0 +1,74 @@
+<resources>
+  <string name="app_name">co-stream</string>
+  <string name="default_web_client_id" translatable="false">616611117861-07fpmevfhj81d6jmgos5f5rtnj0js4tm.apps.googleusercontent.com</string>
+  <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
+  <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+  <string name="expo_system_ui_user_interface_style" translatable="false">automatic</string>
+  <string name="ExpoLocalization_supportsRTL" translatable="false">undefined</string>
+  <string name="facebook_app_id">619242146860347</string>
+  <string name="facebook_client_token">c27d88dc52c4d63aae9cf4de9389d988</string>
+  <string name="fb_login_protocol_scheme">fb619242146860347</string>
+  <string name="version" translatable="false">Version: %1$s</string>
+  <string name="old_api" translatable="false">Old API (16 – 20)</string>
+  <string name="from_file" translatable="false">From file</string>
+  <string name="display" translatable="false">Screen</string>
+  <string name="rotation_rtmp" translatable="false">Rotation(include filters)</string>
+  <string name="tv_select" translatable="false">Select your streamer</string>
+  <string name="hint_protocol" translatable="false">protocol://yourendpoint</string>
+  <string name="grey_scale" translatable="false">Grey scale</string>
+  <string name="negative" translatable="false">Negative</string>
+  <string name="noise" translatable="false">Noise</string>
+  <string name="sepia" translatable="false">Sepia</string>
+  <string name="no_filter" translatable="false">No filter</string>
+  <string name="analog_tv" translatable="false">Analog TV</string>
+  <string name="android_view" translatable="false">Android view</string>
+  <string name="basic_deformation" translatable="false">Basic deformation</string>
+  <string name="beauty" translatable="false">Beauty</string>
+  <string name="black" translatable="false">Black</string>
+  <string name="blur" translatable="false">Blur</string>
+  <string name="brightness" translatable="false">Brightness</string>
+  <string name="cartoon" translatable="false">Cartoon</string>
+  <string name="chroma" translatable="false">Chroma</string>
+  <string name="circle" translatable="false">Circle</string>
+  <string name="color" translatable="false">Color</string>
+  <string name="contrast" translatable="false">Contrast</string>
+  <string name="crop" translatable="false">Crop</string>
+  <string name="duotone" translatable="false">Duotone</string>
+  <string name="earlybird" translatable="false">EarlyBird</string>
+  <string name="edge_detection" translatable="false">Edge detection</string>
+  <string name="exposure" translatable="false">Exposure</string>
+  <string name="fire" translatable="false">Fire</string>
+  <string name="gamma" translatable="false">Gamma</string>
+  <string name="glitch" translatable="false">Glitch</string>
+  <string name="gif" translatable="false">Gif</string>
+  <string name="halftone_lines" translatable="false">Halftone lines</string>
+  <string name="image" translatable="false">Image</string>
+  <string name="image_70s" translatable="false">Image 70s</string>
+  <string name="lamoish" translatable="false">Lamoish</string>
+  <string name="money" translatable="false">Money</string>
+  <string name="pixelated" translatable="false">Pixelated</string>
+  <string name="polygonization" translatable="false">Polygonization</string>
+  <string name="rgb_saturate" translatable="false">RGB saturate</string>
+  <string name="ripple" translatable="false">Ripple</string>
+  <string name="rotation" translatable="false">Rotation</string>
+  <string name="saturation" translatable="false">Saturation</string>
+  <string name="surface_filter" translatable="false">Surface filter</string>
+  <string name="rainbow" translatable="false">Rainbow</string>
+  <string name="sharpness" translatable="false">Sharpness</string>
+  <string name="snow" translatable="false">Snow</string>
+  <string name="swirl" translatable="false">Swirl</string>
+  <string name="temperature" translatable="false">Temperature</string>
+  <string name="text" translatable="false">Text</string>
+  <string name="zebra" translatable="false">Zebra</string>
+  <string name="filters" translatable="false">Filters</string>
+  <string name="orientation" translatable="false">Orientation</string>
+  <string name="horizontal" translatable="false">Horizontal</string>
+  <string name="vertical" translatable="false">Vertical</string>
+  <string name="audio_source" translatable="false">Audio source</string>
+  <string name="microphone" translatable="false">Microphone</string>
+  <string name="video_source" translatable="false">Video source</string>
+  <string name="camera1" translatable="false">Camera1</string>
+  <string name="camera2" translatable="false">Camera2</string>
+  <string name="camerax" translatable="false">CameraX</string>
+  <string name="bitmap" translatable="false">Bitmap</string>
+</resources>

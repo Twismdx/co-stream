@@ -1,0 +1,8 @@
+<resources>
+    <style name="AppTheme.Splash" parent="Theme.SplashScreen">
+        <!-- Customize the splash screen appearance -->
+        <item name="windowSplashScreenBackground">@color/splashscreen_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splashscreen_image</item>
+        <!-- Other splash screen attributes as needed -->
+    </style>
+</resources>
