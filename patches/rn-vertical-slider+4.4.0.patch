@@ -1,0 +1,95 @@
+diff --git a/node_modules/rn-vertical-slider/src/Slider.tsx b/node_modules/rn-vertical-slider/src/Slider.tsx
+index d28d05f..6ba0cc1 100644
+--- a/node_modules/rn-vertical-slider/src/Slider.tsx
++++ b/node_modules/rn-vertical-slider/src/Slider.tsx
+@@ -13,6 +13,7 @@ import Animated, {
+   useAnimatedStyle,
+   useSharedValue,
+   withSpring,
++  useAnimatedReaction,
+ } from 'react-native-reanimated';
+ import { TSliderProps, TSliderRef } from './types';
+ 
+@@ -44,8 +45,8 @@ const RNVerticalSlider = React.forwardRef<TSliderRef, TSliderProps>(
+       maximumTrackTintColor = '#3F2DA5',
+       minimumTrackTintColor = '#77ADE6',
+       disabled = false,
+-      onChange = () => {},
+-      onComplete = () => {},
++      onChange = () => { },
++      onComplete = () => { },
+       value: currentValue = 0,
+       showIndicator = false,
+       renderIndicatorHeight = 40,
+@@ -56,7 +57,14 @@ const RNVerticalSlider = React.forwardRef<TSliderRef, TSliderProps>(
+     },
+     ref
+   ) => {
+-    let point = useSharedValue<number>(currentValue);
++    const point = useSharedValue<number>(currentValue);
++    const [animatedValue, setAnimatedValue] = React.useState(currentValue);
++    useAnimatedReaction(
++      () => point.value,
++      (val) => {
++        runOnJS(setAnimatedValue)(val);
++      }
++    );
+     let disabledProp = useSharedValue<boolean>(disabled);
+     // Memoized BaseView styles
+     const calculateBaseView = () => ({
+@@ -99,15 +107,19 @@ const RNVerticalSlider = React.forwardRef<TSliderRef, TSliderProps>(
+       .onFinalize(onGestureEnd)
+       .runOnJS(true);
+     // Ref methods
+-    React.useImperativeHandle(ref, () => ({
+-      setValue: (value: number) => {
+-        point.value = withSpring(value, animationConfig);
+-        onChange(value);
+-      },
+-      setState: (state: boolean) => {
+-        disabledProp.value = state;
+-      },
+-    }));
++    React.useImperativeHandle(
++      ref,
++      () => ({
++        setValue: (value: number) => {
++          // animate the thumb, but do NOT fire onChange
++          point.value = withSpring(value, animationConfig);
++        },
++        setState: (state: boolean) => {
++          disabledProp.value = state;
++        },
++      }),
++      [animationConfig]  // onChange no longer referenced here
++    );
+     // slider styles
+     const slider = useAnimatedStyle(() => {
+       let heightPercentage = ((point.value - min) / (max - min)) * 100;
+@@ -116,7 +128,7 @@ const RNVerticalSlider = React.forwardRef<TSliderRef, TSliderProps>(
+         height: `${heightPercentage}%`,
+       };
+       return style;
+-    }, [point.value]);
++    });
+     // indicator styles
+     const indicator = useAnimatedStyle(() => {
+       const style: ViewStyle = {};
+@@ -126,7 +138,7 @@ const RNVerticalSlider = React.forwardRef<TSliderRef, TSliderProps>(
+         style.bottom = bottom;
+       }
+       return style;
+-    }, [point.value]);
++    });
+     return (
+       <GestureDetector gesture={panGesture}>
+         <View style={[baseViewStyle, containerStyle]}>
+@@ -134,7 +146,7 @@ const RNVerticalSlider = React.forwardRef<TSliderRef, TSliderProps>(
+             <Animated.View style={[styles.box, slider]} />
+           </View>
+           <Animated.View style={[styles.indicator, indicator]}>
+-            {renderIndicator(point.value)}
++            {renderIndicator(animatedValue)}
+           </Animated.View>
+         </View>
+       </GestureDetector>

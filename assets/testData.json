@@ -1,0 +1,65 @@
+{
+	"4665": {
+		"compname": "Example Comp",
+		"org": {
+			"code": "9BALLSA",
+			"name": "9 Ball SA Inc"
+		},
+		"rounds": {
+			"116799": {
+				"rounddesc": "02-03-2024 - Main - Round 1"
+			},
+			"116800": {
+				"rounddesc": "02-03-2024 - Main - Round 2"
+			}
+		},
+		"matches": {
+			"647956": {
+				"roundid": "116799",
+				"matchformat": "tba",
+				"matchno": "2",
+				"matchtime": false,
+				"hasmatchpoints": 0,
+				"home": {
+					"teamname": "Player One",
+					"shortname": null,
+					"framescore": 0,
+					"framepoints": 0,
+					"status": "1",
+					"livestatus": "2"
+				},
+				"away": {
+					"teamname": "Player Three",
+					"shortname": null,
+					"framescore": 0,
+					"framepoints": 0,
+					"status": "1",
+					"livestatus": "2"
+				}
+			},
+			"647960": {
+				"roundid": "116800",
+				"matchformat": "tba",
+				"matchno": "2",
+				"matchtime": "09:00:00",
+				"hasmatchpoints": 0,
+				"home": {
+					"teamname": "Player Two",
+					"shortname": null,
+					"framescore": 0,
+					"framepoints": 0,
+					"status": "1",
+					"livestatus": "1"
+				},
+				"away": {
+					"teamname": "Player Five",
+					"shortname": null,
+					"framescore": 0,
+					"framepoints": 0,
+					"status": "1",
+					"livestatus": "1"
+				}
+			}
+		}
+	}
+}

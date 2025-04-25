@@ -1,0 +1,220 @@
+diff --git a/node_modules/rn-inkpad/dist/types/components/alert/types/alertTypes.d.ts b/node_modules/rn-inkpad/dist/types/components/alert/types/alertTypes.d.ts
+index 1eea4c3..0c51fd4 100644
+--- a/node_modules/rn-inkpad/dist/types/components/alert/types/alertTypes.d.ts
++++ b/node_modules/rn-inkpad/dist/types/components/alert/types/alertTypes.d.ts
+@@ -6,6 +6,7 @@ export type Button = {
+     textStyle?: StyleProp<TextStyle>;
+     onPress?: () => void;
+ };
++export type CustomImage = ImageSourcePropType | JSX.Element;
+ export type PromptData = {
+     title: string;
+     cancelColorText?: string;
+diff --git a/node_modules/rn-inkpad/dist/types/components/customImage/CustomImage.d.ts b/node_modules/rn-inkpad/dist/types/components/customImage/CustomImage.d.ts
+new file mode 100644
+index 0000000..79c4545
+--- /dev/null
++++ b/node_modules/rn-inkpad/dist/types/components/customImage/CustomImage.d.ts
+@@ -0,0 +1,17 @@
++import React from 'react';
++import { StyleProp, ImageStyle, ImageSourcePropType } from 'react-native';
++
++export type CustomImageProps = {
++  /**
++   * Accepts either a static image source or a JSX element (for example, an SVG component).
++   */
++  customImage: ImageSourcePropType | JSX.Element;
++  /**
++   * Optional style for the image or its container.
++   */
++  imageStyle?: StyleProp<ImageStyle>;
++};
++
++export declare const CustomImage: ({ customImage, imageStyle }: CustomImageProps) => React.JSX.Element;
++
++export {};
+diff --git a/node_modules/rn-inkpad/dist/types/components/index.d.ts b/node_modules/rn-inkpad/dist/types/components/index.d.ts
+index 331725f..d8aa8ab 100644
+--- a/node_modules/rn-inkpad/dist/types/components/index.d.ts
++++ b/node_modules/rn-inkpad/dist/types/components/index.d.ts
+@@ -23,3 +23,4 @@ export * from './slides/SlideAction';
+ export * from './slides/Slider';
+ export * from './switch/Switch';
+ export * from './toast/Toast';
++export * from './customImage/CustomImage';
+\ No newline at end of file
+diff --git a/node_modules/rn-inkpad/src/components/alert/AlertContainer.tsx b/node_modules/rn-inkpad/src/components/alert/AlertContainer.tsx
+index 8d92cd9..1872196 100644
+--- a/node_modules/rn-inkpad/src/components/alert/AlertContainer.tsx
++++ b/node_modules/rn-inkpad/src/components/alert/AlertContainer.tsx
+@@ -1,10 +1,10 @@
+ import React from 'react';
+-import {Modal, Text, TextInput, View} from 'react-native';
++import { Modal, Text, TextInput, View } from 'react-native';
+ 
+-import {Button, Icon} from './components';
+-import {useAlertContainer} from './hooks/useAlertContainer';
+-import {useTheme} from './hooks/useTheme';
+-import {AlertData, PersonalTheme} from './types/alertTypes';
++import { Button, Icon, CustomImage } from './components';
++import { useAlertContainer } from './hooks/useAlertContainer';
++import { useTheme } from './hooks/useTheme';
++import { AlertData, PersonalTheme } from './types/alertTypes';
+ 
+ type Props = {
+   animationType?: 'none' | 'fade' | 'slide';
+@@ -19,9 +19,9 @@ export function AlertContainer({
+   personalTheme,
+   animationType,
+ }: Props) {
+-  const {prompt, isAlert, inputRef, setTextInput, handlePress} =
++  const { prompt, isAlert, inputRef, setTextInput, handlePress } =
+     useAlertContainer();
+-  const {styles, textButtonColor, cancelWeight, ios} = useTheme({
++  const { styles, textButtonColor, cancelWeight, ios } = useTheme({
+     appearance,
+     buttons: (prompt as AlertData)?.buttons?.length,
+     personalTheme,
+@@ -31,7 +31,7 @@ export function AlertContainer({
+ 
+   if (!prompt) return;
+ 
+-  const {placeholderColor, backgroundColor} = personalTheme ?? {};
++  const { placeholderColor, backgroundColor } = personalTheme ?? {};
+ 
+   const {
+     title,
+@@ -45,11 +45,12 @@ export function AlertContainer({
+     description,
+     label,
+     placeholder,
++    customImage,
+   } = prompt as AlertData;
+ 
+   return (
+     <Modal
+-      style={{zIndex: 9999}}
++      style={{ zIndex: 9999 }}
+       visible={!!prompt}
+       transparent
+       animationType={animationType}>
+@@ -70,15 +71,21 @@ export function AlertContainer({
+               flexDirection: 'row',
+               marginHorizontal: 15,
+             }}>
++            {!!customImage && (
++              <CustomImage
++                customImage={customImage}
++                ios={ios}
++              />
++            )}
+             {!!icon && <Icon icon={icon} iconColor={iconColor} ios={ios} />}
+-            <View style={{flex: 1}}>
+-              <Text style={{...styles.title}}>{title}</Text>
++            <View style={{ flex: 1 }}>
++              <Text style={{ ...styles.title }}>{title}</Text>
+               {description && (
+-                <Text style={{...styles.description}}>{description}</Text>
++                <Text style={{ ...styles.description }}>{description}</Text>
+               )}
+             </View>
+           </View>
+-          {!ios && !!label && <Text style={{...styles.label}}>{label}</Text>}
++          {!ios && !!label && <Text style={{ ...styles.label }}>{label}</Text>}
+           {!isAlert && (
+             <TextInput
+               placeholder={placeholder ?? prompt.title}
+@@ -87,15 +94,15 @@ export function AlertContainer({
+                 !!placeholderColor
+                   ? placeholderColor
+                   : appearance === 'dark'
+-                  ? '#666'
+-                  : '#C3C3C3'
++                    ? '#666'
++                    : '#C3C3C3'
+               }
+               ref={inputRef}
+-              style={{...styles.textInput}}
++              style={{ ...styles.textInput }}
+             />
+           )}
+ 
+-          <View style={{...styles.buttonsContainer}}>
++          <View style={{ ...styles.buttonsContainer }}>
+             {!!buttons ? (
+               buttons.map((button, index) => (
+                 <Button
+diff --git a/node_modules/rn-inkpad/src/components/alert/components/CustomImage.tsx b/node_modules/rn-inkpad/src/components/alert/components/CustomImage.tsx
+new file mode 100644
+index 0000000..f06a6a4
+--- /dev/null
++++ b/node_modules/rn-inkpad/src/components/alert/components/CustomImage.tsx
+@@ -0,0 +1,30 @@
++import React from 'react';
++import { View, Image, ImageSourcePropType, StyleProp, ImageStyle } from 'react-native';
++
++type CustomImageProps = {
++    // Accepts either a static image source or a JSX element (for example, an SVG component)
++    customImage: ImageSourcePropType | JSX.Element;
++    imageStyle?: StyleProp<ImageStyle>;
++    ios?: boolean; // Optional prop to determine if the platform is iOS
++};
++
++export const CustomImage = ({ customImage, imageStyle, ios }: CustomImageProps) => {
++    // If customImage is a valid React element (like an SVG component), render it directly inside a View.
++    if (React.isValidElement(customImage)) {
++        return <View style={[imageStyle, {
++            alignItems: 'center',
++            alignSelf: 'center',
++            justifyContent: 'center',
++            position: ios ? 'absolute' : 'relative',
++        }]}>{customImage}</View>;
++    }
++
++    // Otherwise, assume it's an image resource and render it using the Image component.
++    return <Image source={customImage as ImageSourcePropType} style={[imageStyle, {
++        alignItems: 'center',
++        alignSelf: 'center',
++        justifyContent: 'center',
++        position: ios ? 'absolute' : 'relative',
++    }]
++    } />;
++};
+diff --git a/node_modules/rn-inkpad/src/components/alert/components/index.ts b/node_modules/rn-inkpad/src/components/alert/components/index.ts
+index b569ca7..666272c 100644
+--- a/node_modules/rn-inkpad/src/components/alert/components/index.ts
++++ b/node_modules/rn-inkpad/src/components/alert/components/index.ts
+@@ -1,2 +1,3 @@
+ export {Button} from './Button';
+ export {Icon} from './Icon';
++export {CustomImage} from './CustomImage';
+diff --git a/node_modules/rn-inkpad/src/components/alert/types/alertTypes.ts b/node_modules/rn-inkpad/src/components/alert/types/alertTypes.ts
+index d755dc2..ac5e902 100644
+--- a/node_modules/rn-inkpad/src/components/alert/types/alertTypes.ts
++++ b/node_modules/rn-inkpad/src/components/alert/types/alertTypes.ts
+@@ -1,5 +1,6 @@
+-import {StyleProp, TextStyle} from 'react-native';
+-import {IconName} from '../../../types';
++import React from 'react';
++import { StyleProp, TextStyle, ImageSourcePropType } from 'react-native';
++import { IconName } from '../../../types';
+ 
+ export type Icon = 'error' | 'info' | 'success' | 'question';
+ 
+@@ -22,10 +23,14 @@ export type PromptData = {
+ 
+ export interface AlertData extends PromptData {
+   buttons?: Button[];
+-  icon?: IconName;
++  icon?: IconName; // Existing icon option (such as an icon font name)
++  // New property that can accept either:
++  // - An image resource (via ImageSourcePropType) for static images, or
++  // - A JSX element for inline SVGs (or any custom component)
++  customImage?: ImageSourcePropType | JSX.Element;
+   iconColor?: string;
+   showCancelButton?: boolean;
+-}
++};
+ 
+ type Alpha = 0.0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 1.0;
+ 

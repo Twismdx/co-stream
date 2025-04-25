@@ -1,0 +1,45 @@
+
+<Svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 553.79 150" style={{
+	transform: [{ scale: 0.5 }]
+}}>
+<G id="Layer_1_1_">
+	<Path fill="#1C1C1C" d="M68.9-1162.3c4.3-11.9,15.6-19.8,28.3-19.8h3022.5c20.8,0,35.3,20.7,28.2,40.3l-237.8,650
+		c-4.3,11.8-15.6,19.7-28.2,19.7H-137.7c-20.8,0-35.3-20.6-28.2-40.2L68.9-1162.3z"/>
+	<Path fill="#1C1C1C" d="M-180.4-413.1c0-16.6,13.4-30,30-30h3001c16.6,0,30,13.4,30,30v103c0,16.6-13.4,30-30,30h-3001
+		c-16.6,0-30-13.4-30-30L-180.4-413.1L-180.4-413.1z"/>
+	<Path fill="#42D70E" d="M2709.6-436.1h135c16.6,0,30,13.4,30,30v88c0,16.6-13.4,30-30,30h-135V-436.1z"/>
+	<Path fill="#FFFFFF" d="M2309.6-421.1c0-8.3,6.7-15,15-15h385v148h-385c-8.3,0-15-6.7-15-15V-421.1z"/>
+	
+		<LinearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="2732.4304" y1="2147.0557" x2="1793.9303" y2="1555.5555" gradientTransform="matrix(1 0 0 -1 0 1014)">
+		<Stop  offset="0.2379" style="stop-color:#F8F5F5"/>
+		<Stop  offset="0.7721" style="stop-color:#BBBBBB"/>
+	</LinearGradient>
+	<Path fill="url(#SVGID_1_)" d="M2093.2-1167.8c0.7-2,2.6-3.3,4.7-3.3h550.5c3.5,0,5.9,3.5,4.7,6.8l-257.1,681
+		c-0.7,1.9-2.6,3.2-4.7,3.2h-547.5c-3.5,0-5.9-3.5-4.7-6.7L2093.2-1167.8z"/>
+	<G>
+		<Path fill="none" stroke="#C2C2C2" stroke-width="5" stroke-linecap="round" d="M1006.3-412.1l0.3,100"/>
+	</G>
+	<G>
+		<Path fill="none" stroke="#C2C2C2" stroke-width="5" stroke-linecap="round" d="M1636.3-412.1l0.3,100"/>
+	</G>
+</g>
+<G id="Recognition_x5F_TEXT_x5F_DETECTION">
+	<G id="EXT_1_">
+		<G id="EXT_2_">
+			<Path fill="#FFFFFF" d="M2725-336.1l8.4-50.9h34.3l-1.5,8.9h-23.5l-2,12.1h21.8l-1.5,8.9h-21.8l-2,12.1h23.6l-1.5,8.9H2725z"/>
+			<Path fill="#FFFFFF" d="M2786.1-386.9l7.4,17.3h0.4l13.2-17.3h12.5l-19.7,25.4l11.6,25.4h-12.1l-7.6-17.4h-0.4l-13.3,17.4h-12.6
+				l20.2-25.4l-11.5-25.4H2786.1z"/>
+			<Path fill="#FFFFFF" d="M2822.9-378.1l1.5-8.9h41.8l-1.5,8.9h-15.6l-7,42h-10.6l7-42H2822.9z"/>
+		</G>
+	</g>
+</g>
+<Rect id="homeplayer" x="121.6" y="-1121.2" fill="none" width="1768.1" height="269"><Text></Text></Rect>
+<Rect id="awayplayer" x="26" y="-811.3" fill="none" width="1768.1" height="269"><Text></Text></Rect>
+<Rect id="tournamentname" x="-57.4" y="-412.1" fill="none" width="978.2" height="98.8"><Text></Text></Rect>
+<Rect id="raceto" x="1059.8" y="-409.2" fill="none" width="531.7" height="93"><Text></Text></Rect>
+<Rect id="timer" x="1688.3" y="-413.8" fill="none" width="552.7" height="100.5"><Text></Text></Rect>
+<Rect id="awayscore" x="1996.3" y="-812.7" fill="none" width="385.7" height="271.9"><Text></Text></Rect>
+<Rect id="homescore" x="2103" y="-1122.6" fill="none" width="385.7" height="271.9"><Text></Text></Rect>
+<Rect id="homescore2" x="2651.7" y="-1122.6" fill="none" width="370.3" height="271.9"><Text></Text></Rect>
+<Rect id="awayScore2" x="2539.9" y="-812.7" fill="none" width="370.3" height="271.9"><Text></Text></Rect>
+</Svg>

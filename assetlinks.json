@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.costream",
+      "sha256_cert_fingerprints": [
+        "F3:34:E2:16:58:98:DC:05:00:65:FA:BC:37:DB:F6:61:DA:9E:40:3C:E9:32:1B:46:D3:0A:24:98:06:FB:46:36",
+        "08:F3:CB:C2:F7:1E:79:2B:C9:26:38:51:B6:66:C5:B9:D1:28:57:6C:56:82:E9:73:C2:DF:AA:E2:3B:12:3E:5E"
+      ]
+    }
+  }
+]
