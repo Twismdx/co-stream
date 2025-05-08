@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   Text,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { useGlobalContext } from "~/components/timer/context";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import CustomButton from "../components/CustomButton";
@@ -112,18 +113,44 @@ const SelectedUserProfileScreen = () => {
     // set context so form knows who is playing
     setChallengeParams({
       ...challengeParams,
-      challengedUser: selectedUser,
-      currentUser: user,
+      challengedUser: selectedUser
+        ? {
+            id: selectedUser.id,
+            name: selectedUser.name,
+            avatar: selectedUser.avatar,
+          }
+        : null,
+      currentUser: user
+        ? {
+            id: user.id,
+            name: user.name,
+            avatar: user.avatar,
+          }
+        : null,
       selectedChallenge: null,
     });
     setDateOpen(true);
   };
 
   const handleSubmit = async () => {
+    if (
+      !challengeParams.currentUser?.id ||
+      !challengeParams.challengedUser?.id
+    ) {
+      Toast.show({
+        type: "error",
+        text1: "Unable to create challenge",
+        text2: "User information is missing. Please try again.",
+      });
+
+      sheetRef.current?.dismiss();
+
+      return;
+    }
     const formatted = moment(date).format("YYYY-MM-DDTHH:mm:ssZ");
     await createChallenge({
       owner: challengeParams.currentUser.id,
-      opponent: selectedUser.id,
+      opponent: challengeParams.challengedUser.id,
       date: formatted,
       discipline,
       race_length: raceLength,

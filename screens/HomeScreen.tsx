@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   StyleSheet,
   Button,
+  Dimensions
 } from 'react-native'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -22,7 +23,7 @@ import StyledText from '~/components/texts/StyledText'
 import axios from 'axios'
 import { setItem, getItem } from '~/components/utils/AsyncStorage'
 import { supabase } from '~/components/utils/supabase'
-import Sentry from '@sentry/react-native'
+import { TourGuideZoneByPosition } from 'rn-tourguide'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -107,6 +108,8 @@ const HomeScreen: React.FC = () => {
       .or(`owner.eq.${user.id},opponent.eq.${user.id}`)
     if (data) {
       const merged = await mergeNames(data)
+      console.log(data)
+      console.log(merged)
       setMatchData(merged)
     }
   }, [user?.id, mergeNames])
@@ -147,15 +150,26 @@ const HomeScreen: React.FC = () => {
     getChallenges()
   }, [getChallenges])
 
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>
+      <TourGuideZoneByPosition
+        zone={1}
+        isTourGuide
+        text={"Welcome to Co-Stream!  Let's take a quick tour of the main features."}
+        shape={"rectangle"}
+        bottom={0}
+        left={0}
+        width={screenWidth}
+        height={screenHeight}
+      />
       <ScrollView
         style={{ backgroundColor: activeColors.primary, flex: 1 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Button title='Try!' onPress={() => { Sentry.captureException(new Error('First error')) }} />
         <View style={styles.categoryContainer}>
           <CategoryTabSection
             openPoolstatA={openPoolstat}

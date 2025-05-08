@@ -59,7 +59,7 @@ export const BreakFirstContent: FC<{
                         selected === opt.id && { backgroundColor: accentColor },
                     ]}
                 >
-                    <Text style={styles.optionText}>{opt.label}</Text>
+                    <Text style={[styles.optionText, { color: 'white' }]}>{opt.label}</Text>
                 </TouchableOpacity>
             ))}
         </View>
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         marginBottom: 10,
     },
-    optionText: { fontSize: 16 },
+    optionText: { fontSize: 16, fontWeight: 'bold' },
     destButton: {
         marginVertical: 10,
         marginHorizontal: 50,

@@ -91,6 +91,7 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-webview": "13.12.5",
     "rn-chk-new-arch": "^1.1.2",
+    "rn-tourguide": "^3.3.2",
     "rn-vertical-slider": "https://github.com/Twismdx/rn-vertical-slider",
     "zeego": "^3.0.6"
   },

@@ -362,20 +362,13 @@ export async function getFcmToken(userId) {
 }
 
 export const exchangeFbToken = async (shortLivedToken, userId) => {
-  // Build the URL with query parameters
   const url = `${API_BASE_URL}/user/exchange-token?access_token=${encodeURIComponent(
     shortLivedToken
   )}&user_id=${encodeURIComponent(userId)}`;
 
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  const data = await response.json();
-  console.log("Exchange Facebook token response:", data);
-
-  return handleResponse(response);
+  const response = await fetch(url, { method: "GET" });
+  // Option A: parse once here…
+  const result = await handleResponse(response);
+  console.log("Long-lived FB token response:", result);
+  return result;
 };

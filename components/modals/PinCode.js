@@ -7,6 +7,7 @@ import ActivityLoader from "@/components/utils/ActivityLoader";
 import Toast from "~/components/ui/toast";
 import * as Clipboard from "expo-clipboard";
 import Dialog from "./AlertDialog";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const PinCode = ({ route }) => {
   const pinScreenRef = useRef(null);
@@ -20,6 +21,19 @@ const PinCode = ({ route }) => {
   const [expectedPin, setExpectedPin] = useState(null);
   const navigation = useNavigation();
   const [message, setMessage] = useState("");
+
+  const handlePaste = async () => {
+    const text = await Clipboard.getStringAsync();
+    if (text) {
+      // Only digits, max 6
+      const sanitized = text.replace(/\D/g, "").slice(0, 6);
+      setPin(sanitized);
+      // If pin is complete, trigger receivePin
+      if (sanitized.length === 6) {
+        receivePin(sanitized);
+      }
+    }
+  };
 
   async function searchPoolstatPins(pin) {
     const { data, error } = await supabase
@@ -206,6 +220,39 @@ const PinCode = ({ route }) => {
     })();
   };
 
+  // --- Custom Keyboard Layout ---
+  // Bottom left: Paste, Bottom right: Custom icon (Ionicons)
+  const keyboard = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+    [
+      // Bottom row: [Paste, 0, CustomIcon]
+      // We'll use a string "paste" for the left, and a React element for the right
+      "paste",
+      0,
+      <Ionicons
+        name="backspace-outline"
+        size={28}
+        color={activeColors.accent}
+      />,
+    ],
+  ];
+
+  // --- Custom Keyboard Functions ---
+  // Map actions for bottom row: [Paste, 0, CustomIcon]
+  const keyboardFunc = [
+    [null, null, null],
+    [null, null, null],
+    [null, null, null],
+    [
+      // Bottom row: [Paste, 0, CustomIcon]
+      () => handlePaste(),
+      null,
+      null,
+    ],
+  ];
+
   return (
     <>
       {showDialog && (
@@ -252,6 +299,8 @@ const PinCode = ({ route }) => {
         }} // individual key background
         keyTextStyle={{ color: activeColors.foreground }} // individual key text color
         keyImageStyle={{ tintColor: activeColors.foreground }}
+        keyboard={keyboard}
+        keyboardFunc={keyboardFunc}
       />
     </>
   );

@@ -38,3 +38,5 @@ yarn-error.*
 app-example
 
 .env.local
+service_account_key.json
+android/my-upload-key.keystore
