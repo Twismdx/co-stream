@@ -77,14 +77,22 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
     [actionSheet.orgCode]
   )
 
+  // Check if pin is ready for QR code
+  const isPinReady = useCallback((pin: string | undefined) => {
+    return typeof pin === 'string' && pin !== 'Loading...' && pin !== 'Failed to load';
+  }, []);
+
   // helpers to present/dismiss/expand
   const present = useCallback((m: React.RefObject<any>) => m.current?.present(), [])
   const dismiss = useCallback((m: React.RefObject<any>) => m.current?.dismiss(), [])
   const expand = useCallback(() => {
+    if (!isPinReady(actionSheet.matchPin)) {
+      return; // Don't expand if pin isn't ready
+    }
     dismissAll();
-    setShowQR(true)
+    setShowQR(true);
     modalF.current?.expand();
-  }, [])
+  }, [actionSheet.matchPin, isPinReady])
 
   // actions
   const onStream = () => present(modalC)

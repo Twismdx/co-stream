@@ -56,23 +56,47 @@ const HomeScreen: React.FC = () => {
 
   useEffect(() => {
     if (!actionSheet.matchId) return
-    const createPin = async () => {
-      const { data, error } = await supabase
-        .from('poolstat_match_pins')
-        .insert([
-          { matchid: actionSheet.matchId, compid: actionSheet.compId }
-        ])
-
-      setTimeout(async () => {
+    
+    const getPinWithRetry = async (retryDelay = 1000, maxRetries = 5) => {
+      let attempt = 0;
+      while (attempt < maxRetries) {
         const { data, error } = await supabase
           .from('poolstat_match_pins')
           .select('pin')
           .eq('matchid', actionSheet.matchId)
           .single()
-        if (!error && data) {
-          setActionSheet((prev: any) => ({ ...prev, matchPin: data.pin }))
+          
+        if (!error && data?.pin) {
+          return data.pin;
         }
-      }, 2000)
+        
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        retryDelay *= 2; // Exponential backoff
+        attempt++;
+      }
+      return null;
+    };
+
+    const createPin = async () => {
+      try {
+        // Try to insert new pin
+        await supabase
+          .from('poolstat_match_pins')
+          .insert([
+            { matchid: actionSheet.matchId, compid: actionSheet.compId }
+          ])
+      } catch (error) {
+        // Ignore 409 conflict errors - pin already exists
+        console.log('Pin creation error or conflict:', error);
+      }
+
+      // Start polling for pin with exponential backoff
+      const pin = await getPinWithRetry();
+      if (pin) {
+        setActionSheet((prev: any) => ({ ...prev, matchPin: pin }));
+      } else {
+        setActionSheet((prev: any) => ({ ...prev, matchPin: 'Failed to load' }));
+      }
     }
     createPin()
   }, [actionSheet.matchId])
