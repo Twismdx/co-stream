@@ -7,6 +7,7 @@ import {
     TextInput,
     StyleSheet,
 } from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 import { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import QRCode from 'react-native-qrcode-svg'
 import CustomButton from '../CustomButton'
@@ -176,58 +177,61 @@ export const StreamTitleContent: FC<{
 
 export const MatchPinContent: FC<{
     pin: string
-    onCopy: () => void
+    onCopy?: (pin: string) => void
     onQR: () => void
     onSubmit: () => void
     colors: any;
-}> = ({ pin, onCopy, onQR, onSubmit, colors }) => (
-    <BottomSheetView style={[styles.container, { gap: 6 }]}>
-        <Separator />
-        <Text style={[styles.hint, { color: colors.foreground, marginBottom: 6 }]}>
-            {'Got a Umpire / Referee ?\nSend someone a invite, Share the QR code or just tell them the pin.'}
-        </Text>
-        <TouchableOpacity onPress={onCopy}>
-            <Text style={[styles.pin, { color: colors.foreground }]}>{pin}</Text>
-            <Text style={[styles.tapHint, { color: colors.foreground }]}>Tap to copy!</Text>
-        </TouchableOpacity>
-        <View style={styles.containerB}>
-            <View style={styles.row}>
-                <View style={styles.sideButtonWrapper}>
-                    <CustomButton
-                        label="Invite"
-                        disabled
-                        onPress={null}
-                        style={{}}
-                        textStyle={{}}
-                        accessibilityLabel="Invite"
-                        accessibilityHint="Invite"
-                        children={null}
-                    />
+}> = ({ pin, onCopy, onQR, onSubmit, colors }) => {
+
+    return (
+        <BottomSheetView style={[styles.container, { gap: 6 }]}>
+            <Separator />
+            <Text style={[styles.hint, { color: colors.foreground, marginBottom: 6 }]}>
+                {'Got a Umpire / Referee ?\nSend someone a invite, Share the QR code or just tell them the pin.'}
+            </Text>
+            <TouchableOpacity onPress={() => Clipboard.setStringAsync(pin ?? "")}>
+                <Text style={[styles.pin, { color: colors.foreground }]}>{pin}</Text>
+                <Text style={[styles.tapHint, { color: colors.foreground }]}>Tap to copy!</Text>
+            </TouchableOpacity>
+            <View style={styles.containerB}>
+                <View style={styles.row}>
+                    <View style={styles.sideButtonWrapper}>
+                        <CustomButton
+                            label="Invite"
+                            disabled
+                            onPress={null}
+                            style={{}}
+                            textStyle={{}}
+                            accessibilityLabel="Invite"
+                            accessibilityHint="Invite"
+                            children={null}
+                        />
+                    </View>
+                    <View style={styles.sideButtonWrapper}>
+                        <CustomButton
+                            label="QR Code"
+                            onPress={onQR}
+                            style={{}}
+                            textStyle={{}}
+                            accessibilityLabel="QR Code"
+                            accessibilityHint="Show QR"
+                            children={null}
+                        />
+                    </View>
                 </View>
-                <View style={styles.sideButtonWrapper}>
-                    <CustomButton
-                        label="QR Code"
-                        onPress={onQR}
-                        style={{}}
-                        textStyle={{}}
-                        accessibilityLabel="QR Code"
-                        accessibilityHint="Show QR"
-                        children={null}
-                    />
-                </View>
+                <CustomButton
+                    label="Submit"
+                    onPress={onSubmit}
+                    style={{}}
+                    textStyle={{}}
+                    accessibilityLabel="Submit"
+                    accessibilityHint="Submit"
+                    children={null}
+                />
             </View>
-            <CustomButton
-                label="Submit"
-                onPress={onSubmit}
-                style={{}}
-                textStyle={{}}
-                accessibilityLabel="Submit"
-                accessibilityHint="Submit"
-                children={null}
-            />
-        </View>
-    </BottomSheetView>
-)
+        </BottomSheetView>
+    )
+}
 
 export const QRCodeContent: FC<{
     qrValue: string

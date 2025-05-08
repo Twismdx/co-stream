@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
 // Updated to use our custom switch implementation
-import { Switch } from "../components/ui/switch";
+import Switch from "../components/ui/switch";
 
 import StyledText from "../components/texts/StyledText";
 import SettingsItem from "../components/settings/SettingsItem";

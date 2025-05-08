@@ -7,7 +7,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Switch } from "~/components/ui/switch";
+import Switch from "~/components/ui/switch";
 import * as Label from "@rn-primitives/label";
 import {
   DropdownMenu,
@@ -84,7 +84,7 @@ export default function DropDown() {
               <Switch
                 id="scoreboard"
                 checked={checked}
-                onCheckedChange={handleCheck}
+                onValueChange={handleCheck}
               />
               <Label.Root onPress={handleCheck}>
                 <Label.Text

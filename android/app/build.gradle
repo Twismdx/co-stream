@@ -93,9 +93,10 @@ android {
         applicationId 'com.costream'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 57
-        versionName "0.5.7"
+        versionCode 59
+        versionName "0.5.9"
     }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')

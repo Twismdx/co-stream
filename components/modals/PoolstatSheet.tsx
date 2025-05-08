@@ -58,7 +58,7 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
   const modalC = useRef<BottomSheetModal>(null)
   const modalD = useRef<BottomSheetModal>(null)
   const modalE = useRef<BottomSheetModal>(null)
-  const modalF = useRef<BottomSheet>(null)
+  const modalF = useRef<BottomSheetModal>(null)
 
   // expose .openPoolstatA()
   useImperativeHandle(ref, () => ({
@@ -83,14 +83,13 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
   const expand = useCallback(() => {
     dismissAll();
     setShowQR(true)
-    modalF.current?.expand();
+    modalF.current?.present();
   }, [])
 
   // actions
   const onStream = () => present(modalC)
   const onReferee = () => {
     dismiss(modalA)
-    Linking.openURL('')
     navigation.navigate('PinCode', {
       matchId: actionSheet.matchId,
       pin: actionSheet.matchPin,
@@ -127,13 +126,21 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
     })
     await setActionSheet({})
     await setShowQR(false)
-    modalF.current?.close()
+    modalF.current?.dismiss()
     navigation.navigate('GoLive')
     setIsLoading(true)
   }
 
   const copyToClipboard = async (copyText: any) => {
-    await Clipboard.setStringAsync(copyText);
+    await Clipboard.setStringAsync(
+      typeof copyText === "string"
+        ? copyText
+        : typeof copyText === "number"
+          ? String(copyText)
+          : copyText
+            ? JSON.stringify(copyText)
+            : "" // Fallback: empty string if null/undefined
+    );
   };
 
   const onCopyPin = (text: any) => {
@@ -270,7 +277,7 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       >
         <MatchPinContent
           pin={actionSheet.matchPin}
-          onCopy={(text: void) => onCopyPin(text)}
+          onCopy={(pin: string) => onCopyPin(pin)}
           onQR={expand}
           onSubmit={onSubmit}
           colors={colors}
@@ -278,31 +285,32 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       </BottomSheetModal>
 
       {/* Detached QR Code */}
-      {showQR && (
-        <BottomSheet
-          ref={modalF}
-          detached
-          bottomInset={125}
-          enablePanDownToClose
-          handleIndicatorStyle={{
-            backgroundColor: colors.onPrimary,
-            marginTop: 10,
-            marginBottom: -30
-          }}
-          backgroundStyle={{
-            backgroundColor: colors.secondary,
-            borderColor: colors.modalBorder,
-            borderWidth: 1.5,
-          }}
-          style={styles.qrSheet}
-        >
-          <QRCodeContent
-            qrValue={`com.costream://MainTabs/Home?matchId=${actionSheet.matchId}`}
-            onClose={onCloseQR}
-            colors={colors}
-          />
-        </BottomSheet>
-      )}
+      {/* {showQR && ( */}
+      <BottomSheetModal
+        ref={modalF}
+        detached
+        snapPoints={['75%']}
+        bottomInset={150}
+        enablePanDownToClose
+        handleIndicatorStyle={{
+          backgroundColor: colors.onPrimary,
+          marginTop: 10,
+          marginBottom: -30
+        }}
+        backgroundStyle={{
+          backgroundColor: colors.secondary,
+          borderColor: colors.modalBorder,
+          borderWidth: 1.5,
+        }}
+        style={styles.qrSheet}
+      >
+        <QRCodeContent
+          qrValue={`com.costream://MainTabs/Home?matchId=${actionSheet.matchId}`}
+          onClose={onCloseQR}
+          colors={colors}
+        />
+      </BottomSheetModal>
+      {/* )} */}
     </>
   )
 })

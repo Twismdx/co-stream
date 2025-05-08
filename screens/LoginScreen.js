@@ -27,8 +27,22 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import usePermissions from "../components/utils/usePermissions";
 import { getMessaging } from "@react-native-firebase/messaging";
 import ActivityLoader from "@/components/utils/ActivityLoader";
+import { useNavigation } from "@react-navigation/native";
 
-const LoginScreen = ({ navigation, route }) => {
+const fetchFacebookProfile = async (accessToken) => {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=${accessToken}`
+    );
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error fetching Facebook profile:", error);
+    return null;
+  }
+};
+
+const LoginScreen = ({ route }) => {
   const { permissionGranted } = usePermissions();
   const {
     user,
@@ -40,11 +54,11 @@ const LoginScreen = ({ navigation, route }) => {
     setIsEmailSignIn,
     setIsLoading,
     isLoading,
-    setFirstSignIn,
   } = useGlobalContext();
   const activeColors = theme.colors[theme.mode];
   const [email, setEmail] = useState(null);
   const [password, setPassword] = useState(null);
+  const navigation = useNavigation();
 
   const passwordRef = useRef(null);
   const emailRef = useRef(null);
@@ -68,14 +82,30 @@ const LoginScreen = ({ navigation, route }) => {
       );
       return;
     }
-    if (user?.id && fbToken) {
-      const res = await exchangeFbToken(user.id, fbToken);
-      if (res.error) {
-        console.log("Error exchanging Facebook token:", res.error);
-        return;
-      }
+    const res = await exchangeFbToken(fbToken, user.id);
+    if (res.error) {
+      console.log("Error exchanging Facebook token:", res.error);
+      return;
     }
-    setFirstSignIn(true);
+
+    const profile = await fetchFacebookProfile(res.access_token);
+
+    await supabase.auth.updateUser({
+      data: {
+        name: profile.name,
+        email: profile.email,
+        avatar: profile.picture?.data?.url,
+      },
+    });
+
+    const { data, error } = await supabase.from("users").update({
+      fb_token: res.access_token,
+      fb_token_expiry: res.fb_token_expiry,
+    });
+
+    if (error) {
+      console.log("Error updating user data:", error);
+    }
   };
 
   const logout = async () => {

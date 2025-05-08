@@ -1,252 +1,110 @@
-import * as SwitchPrimitives from '@rn-primitives/switch';
-import React, {useState} from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Pressable, StyleSheet } from 'react-native';
 import Animated, {
-  interpolateColor,
+  useSharedValue,
   useAnimatedStyle,
-  useDerivedValue,
   withTiming,
+  interpolateColor,
 } from 'react-native-reanimated';
 
-const SwitchWeb = React.forwardRef((props, ref) => {
-  const { checked, disabled, style, ...rest } = props;
+const Switch = React.forwardRef((props, ref) => {
+  const { 
+    checked, 
+    disabled = false, 
+    style, 
+    onValueChange,
+    ...rest 
+  } = props;
 
-  const [theme, setTheme] = useState({
-      mode: "dark",
-      colors: {
-        dark: {
-          primary: "#121212",
-          modalSurface: "hsl(240, 10%, 3.9%)",
-          modalButton: "hsl(0, 0%, 98%)",
-          modalTitle: "hsl(0, 0%, 98%)",
-          modalText: "hsl(0, 0%, 98%)",
-          modalBorder: "hsl(240, 1.40%, 72.20%)",
-          modalBorder2: "hsl(0, 0.00%, 2.00%)",
-          foreground: "#EDEDED",
-          surface: "#1E1E1E",
-          border: "#2B2B2B",
-          secondary: "#1C1C1C",
-          bottomsheet: "#363636",
-          onAccent: "#000000",
-          onPrimary: "#ffffff",
-          tertiary: "#f9fafb",
-          accent: "#BB86FC", //#904CF2
-          accentVariant: "#362257",
-          accent2: "#03DAC6",
-          text: "#ffffff",
-          tint: "#f9fafb",
-          img: "#f9fafb",
-          error: "hsl(0, 72%, 51%)",
-          success: "#6ee17c",
-          onError: "#000000",
-          category: "#3DB9F7",
-          chatgreen: "#6ee17c",
-          chatblue: "#3b40de",
-          chatred: "#e1877d",
-          chatyellow: "#f5f68c",
-          chatpurple: "#dd261f",
-          chatorange: "#dd261f",
-          chatbackground: "#000000",
-        },
-        light: {
-          primary: "#FFFFFF",
-          secondary: "#03DAC6",
-          onAccent: "#ffffff",
-          onPrimary: "#000000",
-          tertiary: "#4B4B4B",
-          accent: "#6200EE",
-          accent2: "#3700B3",
-          text: "#000000",
-          tint: "#111827",
-          img: "#fff",
-          error: "#B00020",
-          category: "#3DB9F7",
-        },
-      },
-    });
-
-  const activeColors = theme.colors[theme.mode];
-
-  // Root style for the web switch
-  const rootStyle = {
-    flexDirection: 'row',
-    height: 24,
-    width: 44,
-    alignItems: 'center',
-    borderRadius: 9999,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    transition: 'background-color 0.2s',
-    outline: 'none',
-    backgroundColor: checked ? activeColors.accent : activeColors.primary,
-    ...(disabled ? { opacity: 0.5, cursor: 'not-allowed' } : { cursor: 'pointer' }),
+  // Use a default dark theme
+  const activeColors = {
+    primary: "#121212",
+    accent: "#BB86FC",
+    surface: "#1E1E1E",
   };
 
-  // Thumb style with a simple transform based on checked state
-  const thumbStyle = {
-    height: 20,
-    width: 20,
-    borderRadius: 9999,
-    backgroundColor: activeColors.accent,
-    shadowColor: activeColors.accent,
-    shadowOpacity: 0.05,
-    transition: 'transform 0.2s',
-    transform: [{ translateX: checked ? 20 : 0 }],
-  };
+  // Animation for the thumb position
+  const offset = useSharedValue(checked ? 1 : 0);
 
-  return (
-    <SwitchPrimitives.Root
-      {...rest}
-      ref={ref}
-      style={[rootStyle, style]}
-      checked={checked}
-      disabled={disabled}
-    >
-      <SwitchPrimitives.Thumb style={thumbStyle} />
-    </SwitchPrimitives.Root>
-  );
-});
+  // Update animation value when checked prop changes
+  React.useEffect(() => {
+    offset.value = withTiming(checked ? 1 : 0, { duration: 200 });
+  }, [checked, offset]);
 
-SwitchWeb.displayName = 'SwitchWeb';
-
-const RGB_COLORS = {
-  light: {
-    primary: 'rgb(24, 24, 27)',
-    input: 'rgb(228, 228, 231)',
-  },
-  dark: {
-    primary: 'rgb(250, 250, 250)',
-    input: 'rgb(39, 39, 42)',
-  },
-};
-
-const SwitchNative = React.forwardRef((props, ref) => {
-  const { checked, disabled, style, ...rest } = props;
-  const [theme, setTheme] = useState({
-      mode: "dark",
-      colors: {
-        dark: {
-          primary: "#121212",
-          modalSurface: "hsl(240, 10%, 3.9%)",
-          modalButton: "hsl(0, 0%, 98%)",
-          modalTitle: "hsl(0, 0%, 98%)",
-          modalText: "hsl(0, 0%, 98%)",
-          modalBorder: "hsl(240, 1.40%, 72.20%)",
-          modalBorder2: "hsl(0, 0.00%, 2.00%)",
-          foreground: "#EDEDED",
-          surface: "#1E1E1E",
-          border: "#2B2B2B",
-          secondary: "#1C1C1C",
-          bottomsheet: "#363636",
-          onAccent: "#000000",
-          onPrimary: "#ffffff",
-          tertiary: "#f9fafb",
-          accent: "#BB86FC", //#904CF2
-          accentVariant: "#362257",
-          accent2: "#03DAC6",
-          text: "#ffffff",
-          tint: "#f9fafb",
-          img: "#f9fafb",
-          error: "hsl(0, 72%, 51%)",
-          success: "#6ee17c",
-          onError: "#000000",
-          category: "#3DB9F7",
-          chatgreen: "#6ee17c",
-          chatblue: "#3b40de",
-          chatred: "#e1877d",
-          chatyellow: "#f5f68c",
-          chatpurple: "#dd261f",
-          chatorange: "#dd261f",
-          chatbackground: "#000000",
-        },
-        light: {
-          primary: "#FFFFFF",
-          secondary: "#03DAC6",
-          onAccent: "#ffffff",
-          onPrimary: "#000000",
-          tertiary: "#4B4B4B",
-          accent: "#6200EE",
-          accent2: "#3700B3",
-          text: "#000000",
-          tint: "#111827",
-          img: "#fff",
-          error: "#B00020",
-          category: "#3DB9F7",
-        },
-      },
-    });
-  const activeColors = theme.colors[theme.mode];
-  const colorScheme = theme.mode; // using global theme mode (light/dark)
-
-  const translateX = useDerivedValue(() => (checked ? 18 : 0));
-
-  const animatedRootStyle = useAnimatedStyle(() => {
+  // Animated style for the thumb
+  const thumbStyle = useAnimatedStyle(() => {
     return {
+      transform: [{ translateX: withTiming(checked ? 20 : 0, { duration: 200 }) }],
       backgroundColor: interpolateColor(
-        translateX.value,
-        [0, 18],
-        [RGB_COLORS[colorScheme].input, RGB_COLORS[colorScheme].primary]
+        offset.value,
+        [0, 1],
+        [activeColors.accent, activeColors.accent]
       ),
     };
   });
 
-  const animatedThumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: withTiming(translateX.value, { duration: 200 }) }],
-  }));
+  // Animated style for the track
+  const trackStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: interpolateColor(
+        offset.value,
+        [0, 1],
+        [activeColors.primary, 'rgba(187, 134, 252, 0.5)'] // Transparent version of accent
+      ),
+    };
+  });
 
-  // Container style for the switch on native
-  const containerStyle = {
-    height: 32,
-    width: 46,
-    borderRadius: 9999,
-    overflow: 'hidden',
-    ...(disabled ? { opacity: 0.5 } : {}),
-  };
-
-  // Root switch style
-  const switchRootStyle = {
-    flexDirection: 'row',
-    height: 32,
-    width: 46,
-    alignItems: 'center',
-    borderRadius: 9999,
-    borderWidth: 2,
-    borderColor: activeColors.primary,
-    backgroundColor: checked ? '#3f216b' : activeColors.primary,
-  };
-
-  // Thumb base style
-  const thumbBaseStyle = {
-    height: 28,
-    width: 28,
-    borderRadius: 9999,
-    backgroundColor: checked ? activeColors.accent : '#3f216b',
-    shadowColor: activeColors.accent,
-    shadowOpacity: 0.25,
-  };
-  
+  // Safe handler for press events
+  const handlePress = React.useCallback(() => {
+    if (!disabled && onValueChange) {
+      onValueChange(!checked);
+    }
+  }, [checked, disabled, onValueChange]);
 
   return (
-    <Animated.View style={[containerStyle, animatedRootStyle, style]}>
-      <SwitchPrimitives.Root
-        {...rest}
-        ref={ref}
-        style={switchRootStyle}
-        checked={checked}
-        disabled={disabled}
-      >
-        <Animated.View style={animatedThumbStyle}>
-          <SwitchPrimitives.Thumb style={thumbBaseStyle} />
-        </Animated.View>
-      </SwitchPrimitives.Root>
-    </Animated.View>
+    <Pressable
+      ref={ref}
+      style={[styles.container, style, disabled && styles.disabled]}
+      onPress={handlePress}
+      accessibilityRole="switch"
+      accessibilityState={{ checked, disabled }}
+      {...rest}
+    >
+      <Animated.View style={[styles.track, trackStyle]} />
+      <Animated.View style={[styles.thumb, thumbStyle]} />
+    </Pressable>
   );
 });
-SwitchNative.displayName = 'SwitchNative';
 
-const Switch = Platform.select({
-  web: SwitchWeb,
-  default: SwitchNative,
+const styles = StyleSheet.create({
+  container: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  track: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  thumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
 });
 
-export { Switch };
+Switch.displayName = 'Switch';
+
+export default Switch;

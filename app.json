@@ -3,7 +3,7 @@
     "name": "co-stream",
     "jsEngine": "hermes",
     "slug": "co-stream",
-    "version": "0.5.6",
+    "version": "0.5.9",
     "orientation": "portrait",
     "icon": "./assets/costream_icon.png",
     "scheme": "com.costream",
@@ -41,10 +41,7 @@
               "pathPrefix": "/.well-known/assetlinks.json"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ],
       "adaptiveIcon": {
@@ -52,9 +49,7 @@
         "backgroundColor": "#322257"
       },
       "package": "com.costream",
-      "permissions": [
-        "android.permission.INTERNET"
-      ]
+      "permissions": ["android.permission.INTERNET"]
     },
     "web": {
       "bundler": "metro",
@@ -65,16 +60,30 @@
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
       [
-        "expo-splash-screen",
+        "expo-font",
         {
-          "image": "./assets/splashscreen_image_foreground.png",
-          "resizeMode": "contain",
-          "backgroundColor": "#322257"
+          "fonts": [
+            "node_modules/@expo-google-fonts/inter/Inter_900Black.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_100Thin.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_200ExtraLight.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_300Light.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_400Regular.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_500Medium.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_700Bold.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_800ExtraBold.ttf"
+          ]
         }
       ],
       [
-        "./withNotifeeAndroidFix"
+        "expo-splash-screen",
+        {
+          "image": "./assets/splashscreen_image_foreground.png",
+          "backgroundColor": "#322257",
+          "imageWidth": 200
+        }
       ],
+      ["./withNotifeeAndroidFix"],
       [
         "@sentry/react-native/expo",
         {

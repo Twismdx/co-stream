@@ -59,7 +59,7 @@ const ChallengeSheet = forwardRef((_, ref) => {
     const modalC = useRef<BottomSheetModal>(null)
     const modalD = useRef<BottomSheetModal>(null)
     const modalE = useRef<BottomSheetModal>(null)
-    const modalF = useRef<BottomSheet>(null)
+    const modalF = useRef<BottomSheetModal>(null)
 
     const [p1, setP1] = useState('')
     const [p2, setP2] = useState('')
@@ -98,7 +98,7 @@ const ChallengeSheet = forwardRef((_, ref) => {
     const expandQR = useCallback(() => {
         dismissAll();
         setShowQR(true)
-        modalF.current?.expand()
+        modalF.current?.present()
     }, [])
 
     const onStream = () => present(modalB)
@@ -156,7 +156,7 @@ const ChallengeSheet = forwardRef((_, ref) => {
         })
         await setActionSheet({})
         await setShowQR(false)
-        modalF.current?.close()
+        modalF.current?.dismiss()
         navigation.navigate('GoLive')
         setIsLoading(true)
     }
@@ -325,7 +325,7 @@ const ChallengeSheet = forwardRef((_, ref) => {
             >
                 <MatchPinContent
                     pin={actionSheet.matchPin}
-                    onCopy={(text: void) => onCopyPin(text)}
+                    onCopy={() => onCopyPin(actionSheet.matchPin)}
                     onQR={expandQR}
                     onSubmit={onSubmitStream}
                     colors={colors}
@@ -333,27 +333,28 @@ const ChallengeSheet = forwardRef((_, ref) => {
             </BottomSheetModal>
 
             {/* F: QR Code (detached) */}
-            {showQR && (
-                <BottomSheet
-                    ref={modalF}
-                    detached
-                    bottomInset={125}
-                    enablePanDownToClose
-                    handleIndicatorStyle={{ backgroundColor: colors.foreground }}
-                    backgroundStyle={{
-                        backgroundColor: colors.secondary,
-                        borderColor: colors.modalBorder,
-                        borderWidth: 1.5,
-                    }}
-                    style={styles.qrSheet}
-                >
-                    <QRCodeContent
-                        qrValue={`com.costream://MainTabs/Home?pin=true&challengeId=${actionSheet.challengeId}`}
-                        onClose={onCloseQR}
-                        colors={colors}
-                    />
-                </BottomSheet>
-            )}
+            {/* {showQR && ( */}
+            <BottomSheetModal
+                ref={modalF}
+                detached
+                snapPoints={['75%']}
+                bottomInset={150}
+                enablePanDownToClose
+                handleIndicatorStyle={{ backgroundColor: colors.foreground }}
+                backgroundStyle={{
+                    backgroundColor: colors.secondary,
+                    borderColor: colors.modalBorder,
+                    borderWidth: 1.5,
+                }}
+                style={styles.qrSheet}
+            >
+                <QRCodeContent
+                    qrValue={`com.costream://MainTabs/Home?pin=true&challengeId=${actionSheet.challengeId}`}
+                    onClose={onCloseQR}
+                    colors={colors}
+                />
+            </BottomSheetModal>
+            {/* )} */}
         </View>
     )
 })

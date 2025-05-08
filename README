@@ -1,0 +1,396 @@
+# Co-Stream Components Documentation
+
+## Overview
+
+Co-Stream is a React Native application designed for streaming and timing pool/billiards matches. The application enables users to:
+
+- Set up challenge matches and poolstat matches
+- Stream matches to various platforms (profile, page, group)
+- Connect to existing matches via a PIN code
+- Manage match timing with a synchronized timer
+- Share match information via QR codes
+- View and manage user profiles
+- Challenge other players and handle match requests
+
+This document describes the key components and their interactions.
+
+## Architecture
+
+The application follows a tab-based navigation structure with modal-based flows for setting up matches, using bottom sheets for multi-step processes. Core screens include:
+
+- **Home Screen**: Main hub displaying matches and access to challenge setup
+- **Timer Screen**: Displays the match timer with WebView integration
+- **Stream Screen**: Handles video streaming functionality
+- **Profile Screen**: Shows user information and match statistics
+- **Pin Code**: Validates match PIN codes for connecting to matches
+
+## Component Breakdown
+
+### Navigation
+
+#### 1. MainTabNavigator.js
+
+The primary navigation container that organizes the main app screens.
+
+**Purpose:** Provides tab-based navigation between main screens and header functionality.
+
+**Key Features:**
+
+- Bottom tab navigation between Home, Timer, and Settings screens
+- Profile dropdown menu in header with various user options
+- User avatar display with fallback to initials
+- Search functionality for finding other users
+- Tour guide integration for first-time users
+- Authentication state management and logout functionality
+
+**Flow:**
+
+- Displays user avatar in header with dropdown menu
+- Provides access to profile, pending matches, and logout functions
+- Enables navigation between the main tabs of the application
+
+### Main Screens
+
+#### 2. HomeScreen.tsx
+
+The main landing screen of the application.
+
+**Purpose:** Serves as the primary entry point and dashboard for the app.
+
+**Key Features:**
+
+- Displays current day's challenges
+- Access points to create new challenge or poolstat matches
+- Pull-to-refresh functionality to update match data
+- Integrates with bottom sheet modals for match setup
+- Shows organization-specific data
+
+**Flow:**
+
+- Fetches current challenges and organization stats on load
+- Provides references to sheet modals for match creation
+- Creates match PINs when new matches are selected
+
+#### 3. ProfileScreen.js
+
+Displays user information and statistics.
+
+**Purpose:** Shows user profile data and match statistics.
+
+**Key Features:**
+
+- User avatar and name display
+- Match statistics (total played, won, lost, win percentage)
+- Navigation to pending matches and match history
+- Logout functionality
+- Pull-to-refresh to update stats
+
+**Flow:**
+
+- Fetches user challenge statistics
+- Displays profile information
+- Provides navigation to related screens
+
+### Modal Components
+
+#### 4. ChallengeSheet.tsx
+
+A multi-step bottom sheet modal for setting up challenge matches.
+
+**Purpose:** Guides users through the process of setting up and sharing challenge matches.
+
+**Key Features:**
+
+- Match setup options (Stream/Referee/Poolstat)
+- First-to-break selection
+- Destination selection (profile/page/group)
+- Stream title and description input
+- Match PIN display with copy functionality
+- QR code generation for easy sharing
+
+**Flow:**
+
+1. Match Setup modal
+2. First to break selection
+3. Destination selection
+4. Title & Description input
+5. Match PIN display
+6. QR Code display (optional)
+
+#### 5. PoolstatSheet.tsx
+
+Similar to ChallengeSheet but specifically for Poolstat matches.
+
+**Purpose:** Guides users through setting up Poolstat matches.
+
+**Key Features:**
+
+- Match setup options
+- Destination selection
+- Stream title and description input
+- Match PIN display
+- QR code sharing
+
+**Flow:**
+
+1. Match Setup modal
+2. Destination selection
+3. Title & Description input
+4. Match PIN display
+5. QR Code display (optional)
+
+#### 6. SheetContents.tsx & PoolstatSheetContents.tsx
+
+Contains the UI components used within the bottom sheets.
+
+**Purpose:** Reusable content components for the bottom sheets.
+
+**Components:**
+
+- `MainSheetContent`: Initial match options
+- `BreakFirstContent`: Break selection
+- `DestinationSelectionContent`: Platform selection
+- `StreamTitleContent`: Stream metadata input
+- `MatchPinContent`: PIN display
+- `QRCodeContent`: QR code generation
+
+#### 7. PinCode.js
+
+**Purpose:** Handles PIN entry and verification for joining matches.
+
+**Key Features:**
+
+- PIN entry interface
+- PIN validation against database
+- Match lookup in Poolstat or Challenge tables
+- Match confirmation dialog
+
+**Flow:**
+
+1. User enters 6-digit PIN
+2. System validates PIN against databases
+3. If valid, displays match details for confirmation
+4. Upon confirmation, navigates to Timer screen with match data
+
+### Screen Components
+
+#### 8. TimerScreen.js
+
+**Purpose:** Displays and manages the match timer, with optional synchronization to live matches.
+
+**Key Features:**
+
+- WebView integration with timer.co-stream.live
+- Match synchronization using PIN
+- Exit confirmation dialog
+- Data transmission to the WebView timer
+
+**Interactions:**
+
+- Receives match data via navigation params
+- Communicates with the web-based timer via JavaScript
+- Updates avatar and player data for matches
+
+#### 9. StreamScreen.js
+
+**Purpose:** Manages the live streaming functionality.
+
+**Key Features:**
+
+- Camera integration via RTMPPublisher native module
+- Facebook Live streaming setup
+- Stream configuration (title, description, privacy)
+- Viewer count tracking
+- Portrait/Landscape mode switching
+- Camera zoom control
+
+**Technical Notes:**
+
+- Uses native module (RTMPPublisher) for RTMP streaming
+- Handles Facebook API interactions for live video creation
+- Manages camera orientation and zoom
+
+### UI Components
+
+#### 10. ProfileCard.jsx
+
+**Purpose:** Reusable component for displaying user profile information.
+
+**Key Features:**
+
+- User avatar display with fallback to initials
+- User name and stats display
+- Action buttons for profile-related actions
+- Adaptive styling based on theme
+
+**Usage:**
+
+- Used in user listings and profile views
+- Can be configured for different display contexts
+- Supports interaction callbacks for actions
+
+#### 11. PendingMatches.js
+
+**Purpose:** Displays and manages match requests awaiting user response.
+
+**Key Features:**
+
+- List of pending challenge requests
+- Accept/decline match functionality
+- Match details display
+- Pull-to-refresh to update pending matches
+
+**Flow:**
+
+- Fetches pending match requests from database
+- Displays match information with opponent details
+- Handles user responses to match requests
+- Updates match status in database when user takes action
+
+## Data Flow
+
+1. **Application Entry:**
+
+   - User logs in and lands on HomeScreen
+   - MainTabNavigator provides access to main sections
+   - HomeScreen displays current day's matches
+
+2. **Match Setup:**
+
+   - User selects Challenge or Poolstat match type from HomeScreen
+   - Appropriate sheet modal opens (ChallengeSheet or PoolstatSheet)
+   - User completes setup steps
+   - Match data saved to context and/or database
+
+3. **Streaming:**
+
+   - From sheet, user selects "Stream this match"
+   - Navigation to StreamScreen with match data
+   - Stream setup with Facebook APIs
+   - Live streaming begins
+
+4. **Refereeing:**
+
+   - From sheet, user selects "Referee this match"
+   - Navigation to PinCode with match PIN
+   - PIN validation
+   - Navigation to TimerScreen with match data
+
+5. **Joining a Match:**
+
+   - User navigates to PinCode
+   - Enters match PIN
+   - System validates and retrieves match data
+   - Navigation to TimerScreen with sync enabled
+
+6. **Profile Management:**
+   - User accesses profile from MainTabNavigator dropdown
+   - ProfileScreen displays user information and statistics
+   - User can navigate to PendingMatches to handle match requests
+   - ProfileCard components used to display user information
+
+## Global Context
+
+The application uses a global context (`useGlobalContext`) to manage state across components, including:
+
+- Theme and colors
+- Match data
+- Action sheet state
+- Streaming state
+- User authentication
+- Loading states
+- Organization selection
+
+## Implementation Notes
+
+### Bottom Sheet Navigation
+
+The application uses `@gorhom/bottom-sheet` for a multi-step modal flow, with:
+
+- References to each modal (`modalA`, `modalB`, etc.)
+- Functions to present, dismiss, and navigate between modals
+- Custom header components
+
+### Native Module Integration
+
+The StreamScreen uses a native module (`RTMPPublisher`) for camera control and RTMP streaming with:
+
+- Event listeners for stream state changes
+- Camera control functions (zoom, orientation)
+- Stream authentication and connection management
+
+### Authentication & APIs
+
+- Facebook API integration for live streaming
+- Supabase for database operations and user management
+- Authentication state management
+
+### Navigation Flow
+
+- MainTabNavigator provides the primary navigation structure
+- Stack navigation used for screens like PendingMatches
+- Context state used to manage navigation states across components
+
+## Security Considerations
+
+- PIN-based match access control
+- Authentication token management
+- Privacy settings for streams
+- User permissions for match operations
+
+## Usage Examples
+
+### Creating a Challenge Match
+
+```javascript
+// Example of opening a challenge match setup from HomeScreen
+const challengeRef = useRef(null);
+challengeRef.current?.openSetup();
+```
+
+### Navigating to Profile
+
+```javascript
+// Navigation to profile screen
+navigation.navigate("Profile");
+```
+
+### Handling Pending Matches
+
+```javascript
+// Navigate to pending matches screen
+navigation.navigate("PendingMatches");
+```
+
+### Connecting to a Match via PIN
+
+```javascript
+// Navigation to PIN screen
+navigation.navigate("PinCode", { pin: "123456" });
+```
+
+### Starting a Stream
+
+```javascript
+// Complete match setup then navigate
+navigation.navigate("GoLive");
+```
+
+## Troubleshooting
+
+- If PIN validation fails, check both poolstat_match_pins and challenges tables
+- For streaming issues, verify Facebook token validity
+- Timer synchronization requires valid match data in the database
+- Profile data issues may require re-authentication
+
+## Dependencies
+
+- `@gorhom/bottom-sheet`: Modal bottom sheets
+- `react-native-webview`: Timer WebView integration
+- `@react-navigation/native` and `@react-navigation/bottom-tabs`: Navigation
+- `expo-clipboard`: PIN copying functionality
+- `react-native-qrcode-svg`: QR code generation
+- `supabase`: Backend database integration
+- `dayjs`: Date manipulation
+- `rn-tourguide`: User onboarding
+- Native modules for RTMP streaming

@@ -1,0 +1,24 @@
+project(':expo-modules-core') {
+    afterEvaluate {
+        android {
+            // Ensure compose is enabled if it isn't already
+            buildFeatures {
+                compose true
+            }
+            
+            composeOptions {
+                kotlinCompilerExtensionVersion = "1.5.4"  // Compatible with Kotlin 1.9.x
+                suppressKotlinVersionCompatibilityCheck = true
+            }
+        }
+        
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                freeCompilerArgs += [
+                    "-P",
+                    "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+                ]
+            }
+        }
+    }
+}

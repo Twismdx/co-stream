@@ -686,7 +686,7 @@ const StreamScreen = ({ route, navigation }) => {
       </View>
       <View style={styles.footer_container}>
         <View style={styles.mute_container}>
-          <View style={[sliderPosition, { height: 300 }]}>
+          {/* <View style={[sliderPosition, { height: 300 }]}>
             <TouchableOpacity
               style={{ width: 40, height: 40, marginBottom: 25 }}
               onPress={() => handleZoomChange(zoomLevel + 0.1)}
@@ -753,7 +753,7 @@ const StreamScreen = ({ route, navigation }) => {
                 style={{ opacity: 0.5 }}
               />
             </TouchableOpacity>
-          </View>
+          </View> */}
         </View>
         <View style={styles.stream_container}>
           <TouchableOpacity

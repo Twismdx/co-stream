@@ -2,11 +2,11 @@
 
 buildscript {
     ext {
-        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '35.0.0'
+        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '34.0.0'
         minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
         compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
-        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.25'
+        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.0'
 
         ndkVersion = "26.1.10909125"
     }
@@ -20,6 +20,31 @@ buildscript {
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
         classpath 'com.google.gms:google-services:4.4.2'
         
+    }
+}
+
+subprojects { subproject ->
+    afterEvaluate {
+        if (subproject.plugins.hasPlugin('org.jetbrains.kotlin.android')) {
+            subproject.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions {
+                    freeCompilerArgs += [
+                        "-P",
+                        "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.25"
+                    ]
+                }
+            }
+            // Optionally, force Compose version for all subprojects using Compose
+            if (subproject.hasProperty('android')) {
+                subproject.android {
+                    if (it.buildFeatures?.compose == true) {
+                        composeOptions {
+                            kotlinCompilerExtensionVersion = "1.5.4"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

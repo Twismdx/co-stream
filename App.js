@@ -6,14 +6,14 @@ globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
 if (typeof global.atob === "undefined") {
   global.atob = (input) => Buffer.from(input, "base64").toString("binary");
 }
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
 import { AppProvider } from "~/components/timer/context";
 import { ToastProvider } from "~/components/ui/toast";
-import { LogBox, Platform } from "react-native";
+import { LogBox, Platform, Animated, View, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
-// import {OpenSans_600SemiBold} from '@expo-google-fonts/open-sans'
 import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
 import "expo-dev-client";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -31,26 +31,25 @@ import notifee, {
   AndroidImportance,
   AuthorizationStatus,
 } from "@notifee/react-native";
-import {
-  useFonts,
-  Inter_100Thin,
-  Inter_200ExtraLight,
-  Inter_300Light,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  Inter_800ExtraBold,
-  Inter_900Black,
-} from "@expo-google-fonts/inter";
 import { getCurrentUser, supabase } from "./components/utils/supabase";
 import ActivityLoader from "./components/utils/ActivityLoader";
 import AppContent from "./AppContent";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import * as Sentry from '@sentry/react-native';
+import * as Sentry from "@sentry/react-native";
+import { Ionicons, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
+import {
+  getItem,
+  setItem,
+  clear,
+  setObject,
+  getObject,
+  removeItem,
+  removeObject,
+} from "~/components/utils/AsyncStorage";
+import { TourGuideProvider } from "rn-tourguide";
 
 Sentry.init({
-  dsn: 'https://0b65b2de868bbb143f80448f0fc59014@o4509216306757632.ingest.us.sentry.io/4509216307806208',
+  dsn: "https://0b65b2de868bbb143f80448f0fc59014@o4509216306757632.ingest.us.sentry.io/4509216307806208",
 
   // Configure Session Replay
   replaysSessionSampleRate: 0.1,
@@ -63,22 +62,14 @@ Sentry.init({
 
 SplashScreen.preventAutoHideAsync();
 
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
+
 const App = () => {
   const [isReady, setIsReady] = useState(false);
-  const [session, setSession] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [fontsLoaded] = useFonts({
-    // OpenSans_600SemiBold: OpenSans_600SemiBold,
-    Inter_100Thin,
-    Inter_200ExtraLight,
-    Inter_300Light,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_800ExtraBold,
-    Inter_900Black,
-  });
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   async function bootstrap() {
     const initialNotification = await notifee.getInitialNotification();
@@ -139,21 +130,37 @@ const App = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        if (fontsLoaded) {
-          await SplashScreen.hideAsync();
+        await Font.loadAsync(Ionicons.font);
+        await Font.loadAsync(MaterialCommunityIcons.font);
+        await Font.loadAsync(Feather.font);
 
-          bootstrap()
-            .then(() => setIsReady(true))
-            .catch(console.error);
-
-          messaging().onMessage(onDisplayNotification);
-        }
+        bootstrap();
+        messaging().onMessage(onDisplayNotification);
       } catch (error) {
-        console.error("Error initializing app:", error);
+        console.log("Error loading fonts:", error);
+      } finally {
+        setIsReady(true);
       }
     };
+
     initializeApp();
-  }, [fontsLoaded]);
+  }, []);
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    (async () => {
+      // reveal your JS app *underneath*
+      await SplashScreen.hideAsync();
+
+      // fade out the overlay
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 800, // <– how long your fade should be
+        useNativeDriver: true,
+      }).start();
+    })();
+  }, [isReady]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
@@ -168,7 +175,7 @@ const App = () => {
 
   useEffect(() => {
     checkNotificationPermission();
-  }, [fontsLoaded]);
+  }, [isReady]);
 
   // useEffect(() => {
   //   GoogleSignin.configure({
@@ -194,8 +201,17 @@ const App = () => {
           <AppProvider>
             <BottomSheetModalProvider>
               <AutocompleteDropdownContextProvider>
-                <AppContent />
-                <ToastProvider />
+                <TourGuideProvider androidStatusBarVisible={true}>
+                  <AppContent />
+                  <ToastProvider />
+                  <Animated.View
+                    pointerEvents="none"
+                    style={[
+                      StyleSheet.absoluteFillObject,
+                      { backgroundColor: "#322257", opacity: fadeAnim },
+                    ]}
+                  />
+                </TourGuideProvider>
               </AutocompleteDropdownContextProvider>
             </BottomSheetModalProvider>
             <PortalHost />

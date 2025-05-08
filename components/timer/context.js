@@ -107,6 +107,7 @@ const AppProvider = ({ children }) => {
   const [openD, setOpenD] = useState(false);
   const [openE, setOpenE] = useState(false);
   const [openF, setOpenF] = useState(false);
+  const [isTourEnabled, setIsTourEnabled] = useState(true);
 
   const updateFacebookProfile = async (profile) => {
     try {
@@ -534,6 +535,8 @@ const AppProvider = ({ children }) => {
         setOpenE,
         openF,
         setOpenF,
+        isTourEnabled,
+        setIsTourEnabled,
       }}
     >
       {children}

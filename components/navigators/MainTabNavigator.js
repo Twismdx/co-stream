@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Pressable } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,6 +35,11 @@ import { clear } from "~/components/utils/AsyncStorage";
 import { supabase } from "~/components/utils/supabase";
 import MeasureView from "../utils/MeasureView";
 import { Separator } from "zeego/dropdown-menu";
+import {
+  TourGuideZone,
+  TourGuideZoneByPosition,
+  useTourGuideController,
+} from "rn-tourguide";
 
 const { height: windowHeight, width: windowWidth } = Dimensions.get("window");
 
@@ -48,6 +53,8 @@ const MainTabNavigator = ({ openSearch }) => {
     setIsLoggedIn,
     setUser,
   } = useGlobalContext();
+  const { start, canStart, stop, eventEmitter, tourKey, getCurrentStep } =
+    useTourGuideController("home");
   const activeColors = theme.colors[theme.mode];
   const Tab = createBottomTabNavigator();
   const navigation = useNavigation();
@@ -104,6 +111,36 @@ const MainTabNavigator = ({ openSearch }) => {
     }
   };
 
+  useEffect(() => {
+    // Defensive patch: only set event listeners if eventEmitter exists
+    if (!eventEmitter || typeof eventEmitter.on !== "function") {
+      // Optionally log a warning so dev sees the limitation
+      if (__DEV__) {
+        console.warn(
+          "[MainTabNavigator] TourGuide eventEmitter is undefined or missing .on. Tour feature will be disabled."
+        );
+      }
+      return;
+    }
+
+    const handleStepChange = (step) => {
+      // `step` is the Step instance; its `order` (or your custom `zone`) tells you which step.
+      // Whichever number you used on your <TourGuideZone zone={…}> around the Avatar:
+      if (step.order === 4) {
+        // open the dropdown when you reach step #3
+        triggerRef.current?.open();
+      } else {
+        // optionally close it on all other steps
+        triggerRef.current?.close();
+      }
+    };
+
+    eventEmitter.on("stepChange", handleStepChange);
+    return () => {
+      eventEmitter.off("stepChange", handleStepChange);
+    };
+  }, [eventEmitter]);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -113,18 +150,26 @@ const MainTabNavigator = ({ openSearch }) => {
         headerShown: true,
         gestureEnabled: false,
         tabBarIcon: ({ focused, color }) => {
-          let iconName;
-          if (route.name === "Home") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Settings") {
-            iconName = focused ? "settings" : "settings-outline";
-          } else if (route.name === "Timer") {
-            iconName = focused ? "stopwatch" : "stopwatch-outline";
-          } else if (route.name === "ProfileStack") {
-            iconName = focused ? "person-circle" : "person-circle-outline";
-          }
+          const icons = {
+            Home: focused ? "home" : "home-outline",
+            Timer: focused ? "stopwatch" : "stopwatch-outline",
+            Settings: focused ? "settings" : "settings-outline",
+          };
+          const zones = {
+            Home: 5,
+            Timer: 6,
+            Settings: 7,
+          };
 
-          return <Ionicons name={iconName} size={24} color={color} />;
+          return (
+            <TourGuideZone
+              zone={zones[route.name]}
+              text={`This is the ${route.name} tab`}
+              borderRadius={6}
+            >
+              <Ionicons name={icons[route.name]} size={24} color={color} />
+            </TourGuideZone>
+          );
         },
         tabBarActiveTintColor: activeColors.accent,
         tabBarInactiveTintColor: activeColors.onPrimary,
@@ -151,71 +196,77 @@ const MainTabNavigator = ({ openSearch }) => {
                     paddingRight: 5,
                   }}
                 >
-                  <TouchableOpacity onPress={() => triggerRef.current?.open()}>
-                    <Avatar
-                      style={{ width: 60, height: 60 }}
-                      alt={getUserInitials()}
-                    >
-                      <AvatarImage
-                        source={
-                          user?.avatar_url
-                            ? { uri: user?.avatar_url }
-                            : require("~/assets/placeholder.png")
+                  <TourGuideZone
+                    zone={3}
+                    text={"Tap on your avatar to open the menu."}
+                    borderRadius={6}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        triggerRef.current?.open();
+
+                        const currentStep = getCurrentStep();
+                        if (currentStep && currentStep.order === 3) {
+                          setTimeout(() => start(4), 100);
                         }
-                        onError={(e) => {
-                          console.error(
-                            "Avatar image failed to load:",
-                            e.nativeEvent.error
-                          );
-                        }}
-                      />
-                      <AvatarFallback>
-                        <Text>{getUserInitials()}</Text>
-                      </AvatarFallback>
-                    </Avatar>
-                  </TouchableOpacity>
+                      }}
+                    >
+                      <Avatar
+                        style={{ width: 60, height: 60 }}
+                        alt={getUserInitials()}
+                      >
+                        <AvatarImage
+                          source={
+                            user?.avatar_url
+                              ? { uri: user?.avatar_url }
+                              : require("~/assets/placeholder.png")
+                          }
+                          onError={(e) => {
+                            console.error(
+                              "Avatar image failed to load:",
+                              e.nativeEvent.error
+                            );
+                          }}
+                        />
+                        <AvatarFallback>
+                          <Text>{getUserInitials()}</Text>
+                        </AvatarFallback>
+                      </Avatar>
+                    </TouchableOpacity>
+                  </TourGuideZone>
                 </View>
               </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                insets={contentInsets}
-                style={{
-                  width: 288, // w-72
-                  backgroundColor: darkThemeColors.surface,
-                  borderWidth: 1,
-                  borderColor: darkThemeColors.border,
-                  borderRadius: 8,
-                  paddingVertical: 8,
-                }}
+              <TourGuideZone
+                zone={4}
+                text={
+                  "You can navigate to your profile, View and accept/decline pending match requests and view your challenge match history."
+                }
+                borderRadius={6}
               >
-                <Separator
-                  style={{ backgroundColor: darkThemeColors.border }}
-                />
+                <DropdownMenuContent
+                  insets={contentInsets}
+                  style={{
+                    width: 288, // w-72
+                    backgroundColor: darkThemeColors.surface,
+                    borderWidth: 1,
+                    borderColor: darkThemeColors.border,
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                  }}
+                >
+                  <Separator
+                    style={{ backgroundColor: darkThemeColors.border }}
+                  />
 
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    onPress={() => {
-                      navigation.navigate("Profile");
-                    }}
-                  >
-                    {/* Use 'foreground' so it appears in white (or light) against a dark background */}
-                    <Feather
-                      name="user"
-                      style={{
-                        color: darkThemeColors.foreground,
-                        marginRight: 8,
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      onPress={() => {
+                        navigation.navigate("Profile");
                       }}
-                      size={14}
-                    />
-                    <Text style={{ color: darkThemeColors.foreground }}>
-                      My Profile
-                    </Text>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <MaterialCommunityIcons
-                        name="tournament"
+                    >
+                      {/* Use 'foreground' so it appears in white (or light) against a dark background */}
+                      <Feather
+                        name="user"
                         style={{
                           color: darkThemeColors.foreground,
                           marginRight: 8,
@@ -223,57 +274,74 @@ const MainTabNavigator = ({ openSearch }) => {
                         size={14}
                       />
                       <Text style={{ color: darkThemeColors.foreground }}>
-                        Challenges
+                        My Profile
                       </Text>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent
-                      style={{
-                        // Use the same background/border approach
-                        backgroundColor: darkThemeColors.surface,
-                        borderWidth: 0,
-                        borderColor: darkThemeColors.border,
-                      }}
-                    >
-                      <Animated.View entering={FadeIn.duration(200)}>
-                        <DropdownMenuItem
-                          onPress={() => navigation.navigate("MatchHistory")}
-                        >
-                          <MaterialCommunityIcons
-                            name="history"
-                            style={{
-                              color: darkThemeColors.foreground,
-                              marginRight: 8,
-                            }}
-                            size={14}
-                          />
-                          <Text style={{ color: darkThemeColors.foreground }}>
-                            History
-                          </Text>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onPress={() => navigation.navigate("PendingMatches")}
-                        >
-                          <MaterialIcons
-                            name="pending-actions"
-                            style={{
-                              color: darkThemeColors.foreground,
-                              marginRight: 8,
-                            }}
-                            size={14}
-                          />
-                          <Text style={{ color: darkThemeColors.foreground }}>
-                            Pending Challenges
-                          </Text>
-                        </DropdownMenuItem>
-                      </Animated.View>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
+                    </DropdownMenuItem>
 
-                  <Separator
-                    style={{ backgroundColor: darkThemeColors.border }}
-                  />
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <MaterialCommunityIcons
+                          name="tournament"
+                          style={{
+                            color: darkThemeColors.foreground,
+                            marginRight: 8,
+                          }}
+                          size={14}
+                        />
+                        <Text style={{ color: darkThemeColors.foreground }}>
+                          Challenges
+                        </Text>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent
+                        style={{
+                          // Use the same background/border approach
+                          backgroundColor: darkThemeColors.surface,
+                          borderWidth: 0,
+                          borderColor: darkThemeColors.border,
+                        }}
+                      >
+                        <Animated.View entering={FadeIn.duration(200)}>
+                          <DropdownMenuItem
+                            onPress={() => navigation.navigate("MatchHistory")}
+                          >
+                            <MaterialCommunityIcons
+                              name="history"
+                              style={{
+                                color: darkThemeColors.foreground,
+                                marginRight: 8,
+                              }}
+                              size={14}
+                            />
+                            <Text style={{ color: darkThemeColors.foreground }}>
+                              History
+                            </Text>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onPress={() =>
+                              navigation.navigate("PendingMatches")
+                            }
+                          >
+                            <MaterialIcons
+                              name="pending-actions"
+                              style={{
+                                color: darkThemeColors.foreground,
+                                marginRight: 8,
+                              }}
+                              size={14}
+                            />
+                            <Text style={{ color: darkThemeColors.foreground }}>
+                              Pending Challenges
+                            </Text>
+                          </DropdownMenuItem>
+                        </Animated.View>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
 
-                  <DropdownMenuSub>
+                    <Separator
+                      style={{ backgroundColor: darkThemeColors.border }}
+                    />
+
+                    {/* <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
                       <MaterialCommunityIcons
                         name="tournament"
@@ -340,38 +408,47 @@ const MainTabNavigator = ({ openSearch }) => {
 
                   <Separator
                     style={{ backgroundColor: darkThemeColors.border }}
-                  />
+                  /> */}
 
-                  <DropdownMenuItem onPress={logoutUser}>
-                    <MaterialIcons
-                      name="logout"
-                      style={{
-                        color: darkThemeColors.foreground,
-                        marginRight: 8,
-                      }}
-                      size={14}
-                    />
-                    <Text style={{ color: darkThemeColors.foreground }}>
-                      Log out
-                    </Text>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
+                    <DropdownMenuItem onPress={logoutUser}>
+                      <MaterialIcons
+                        name="logout"
+                        style={{
+                          color: darkThemeColors.foreground,
+                          marginRight: 8,
+                        }}
+                        size={14}
+                      />
+                      <Text style={{ color: darkThemeColors.foreground }}>
+                        Log out
+                      </Text>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </TourGuideZone>
             </DropdownMenu>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                width: windowWidth - 90,
-              }}
+            <TourGuideZone
+              zone={2}
+              text={
+                "Search for other users to view their profile or challenge them to a 1v1 match!"
+              }
+              borderRadius={6}
             >
-              <AutoCompleteUsers
-                top={panelTop}
-                maxHeight={panelMax}
-                openSearch={openSearch}
-              />
-            </View>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: windowWidth - 90,
+                }}
+              >
+                <AutoCompleteUsers
+                  top={panelTop}
+                  maxHeight={panelMax}
+                  openSearch={openSearch}
+                />
+              </View>
+            </TourGuideZone>
           </View>
         ),
       })}

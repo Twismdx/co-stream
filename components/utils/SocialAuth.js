@@ -85,7 +85,10 @@ export async function LoginWithFacebook() {
           avatar: profile.picture?.data?.url,
         },
       });
-      console.log(profile.picture.data.url);
+
+      console.log(fbAccessToken);
+
+      // console.log(profile.picture.data.url);
       if (fbAccessToken) {
         await setItem("fbAccessToken", fbAccessToken);
       }
