@@ -96,6 +96,7 @@ const MatchCardUpcoming = ({
       matchId: matchId,
       compId: compId,
       orgCode: orgCode,
+      matchPin: 'Loading...' // Initialize with loading state
     });
     await setStreamTitle(`${home} Vs ${away}`);
     await setDesc(`${home} Vs ${away}`);

@@ -6,6 +6,7 @@ import {
     FlatList,
     TextInput,
     StyleSheet,
+    ActivityIndicator,
 } from 'react-native'
 import { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import QRCode from 'react-native-qrcode-svg'
@@ -180,75 +181,126 @@ export const MatchPinContent: FC<{
     onQR: () => void
     onSubmit: () => void
     colors: any;
-}> = ({ pin, onCopy, onQR, onSubmit, colors }) => (
-    <BottomSheetView style={[styles.container, { gap: 6 }]}>
-        <Separator />
-        <Text style={[styles.hint, { color: colors.foreground, marginBottom: 6 }]}>
-            {'Got a Umpire / Referee ?\nSend someone a invite, Share the QR code or just tell them the pin.'}
-        </Text>
-        <TouchableOpacity onPress={onCopy}>
-            <Text style={[styles.pin, { color: colors.foreground }]}>{pin}</Text>
-            <Text style={[styles.tapHint, { color: colors.foreground }]}>Tap to copy!</Text>
-        </TouchableOpacity>
-        <View style={styles.containerB}>
-            <View style={styles.row}>
-                <View style={styles.sideButtonWrapper}>
-                    <CustomButton
-                        label="Invite"
-                        disabled
-                        onPress={null}
-                        style={{}}
-                        textStyle={{}}
-                        accessibilityLabel="Invite"
-                        accessibilityHint="Invite"
-                        children={null}
-                    />
+}> = ({ pin, onCopy, onQR, onSubmit, colors }) => {
+    const isLoading = pin === 'Loading...';
+    const hasError = pin === 'Failed to load';
+    const hasValidPin = !isLoading && !hasError;
+
+    return (
+        <BottomSheetView style={[styles.container, { gap: 6 }]}>
+            <Separator />
+            <Text style={[styles.hint, { color: colors.foreground, marginBottom: 6 }]}>
+                {'Got a Umpire / Referee ?\nSend someone a invite, Share the QR code or just tell them the pin.'}
+            </Text>
+            
+            {isLoading && (
+                <View style={styles.centerContent}>
+                    <ActivityIndicator size="large" color={colors.accent} />
+                    <Text style={[styles.loadingText, { color: colors.foreground }]}>
+                        Loading match pin...
+                    </Text>
                 </View>
-                <View style={styles.sideButtonWrapper}>
-                    <CustomButton
-                        label="QR Code"
-                        onPress={onQR}
-                        style={{}}
-                        textStyle={{}}
-                        accessibilityLabel="QR Code"
-                        accessibilityHint="Show QR"
-                        children={null}
-                    />
+            )}
+            
+            {hasError && (
+                <View style={styles.centerContent}>
+                    <Text style={[styles.errorText, { color: colors.error }]}>
+                        Failed to load match pin. Please try again.
+                    </Text>
                 </View>
+            )}
+            
+            {hasValidPin && (
+                <TouchableOpacity onPress={onCopy} disabled={!hasValidPin}>
+                    <Text style={[styles.pin, { color: colors.foreground }]}>{pin}</Text>
+                    <Text style={[styles.tapHint, { color: colors.foreground }]}>
+                        Tap to copy!
+                    </Text>
+                </TouchableOpacity>
+            )}
+            
+            <View style={styles.containerB}>
+                <View style={styles.row}>
+                    <View style={styles.sideButtonWrapper}>
+                        <CustomButton
+                            label="Invite"
+                            disabled={true}
+                            onPress={null}
+                            style={{}}
+                            textStyle={{}}
+                            accessibilityLabel="Invite"
+                            accessibilityHint="Invite"
+                            children={null}
+                        />
+                    </View>
+                    <View style={styles.sideButtonWrapper}>
+                        <CustomButton
+                            label="QR Code"
+                            onPress={onQR}
+                            disabled={!hasValidPin}
+                            style={{}}
+                            textStyle={{}}
+                            accessibilityLabel="QR Code"
+                            accessibilityHint="Show QR"
+                            children={null}
+                        />
+                    </View>
+                </View>
+                <CustomButton
+                    label="Submit"
+                    onPress={onSubmit}
+                    disabled={!hasValidPin}
+                    style={{}}
+                    textStyle={{}}
+                    accessibilityLabel="Submit"
+                    accessibilityHint="Submit"
+                    children={null}
+                />
             </View>
-            <CustomButton
-                label="Submit"
-                onPress={onSubmit}
-                style={{}}
-                textStyle={{}}
-                accessibilityLabel="Submit"
-                accessibilityHint="Submit"
-                children={null}
-            />
-        </View>
-    </BottomSheetView>
-)
+        </BottomSheetView>
+    );
+};
 
 export const QRCodeContent: FC<{
     qrValue: string
     onClose: () => void
     colors: any;
-}> = ({ qrValue, onClose, colors }) => (
-    <BottomSheetView style={styles.qrContainer}>
-        <Text style={[styles.qrTitle, { color: colors.foreground }]}>
-            Scan this QR code
-        </Text>
-        <Separator />
-        <View style={styles.qrBox}>
-            <QRCode value={qrValue} size={200} color="black" backgroundColor="white" />
-        </View>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeText}>Close</Text>
-        </TouchableOpacity>
-    </BottomSheetView>
-)
+}> = ({ qrValue, onClose, colors }) => {
+    const fallbackURL = 'https://costream.com';
+    const safeQRValue = typeof qrValue === 'string' && qrValue.length > 0 ? qrValue : fallbackURL;
+    
+    return (
+        <BottomSheetView style={styles.qrContainer}>
+            <Text style={[styles.qrTitle, { color: colors.foreground }]}>
+                Scan this QR code
+            </Text>
+            <Separator />
+            <View style={styles.qrBox}>
+                <QRCode value={safeQRValue} size={200} color="black" backgroundColor="white" />
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <Text style={styles.closeText}>Close</Text>
+            </TouchableOpacity>
+        </BottomSheetView>
+    );
+}
 
 const styles = StyleSheet.create({
+    centerContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    errorText: {
+        fontSize: 16,
+        textAlign: 'center',
+        fontWeight: '500',
+    },
     container: { paddingHorizontal: 20, gap: 12 },
     item: { paddingVertical: 10 },
     text: { fontSize: 16 },
