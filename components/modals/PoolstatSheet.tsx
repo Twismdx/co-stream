@@ -93,237 +93,234 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
     setShowQR(true)
     modalF.current?.present();
   }, [])
-  setShowQR(true);
-  modalF.current?.expand();
-}, [actionSheet.matchPin, isPinReady])
 
-// actions
-const onStream = () => present(modalC)
-const onReferee = () => {
-  dismiss(modalA)
-  navigation.navigate('PinCode', {
-    matchId: actionSheet.matchId,
-    pin: actionSheet.matchPin,
-  })
-}
-const onPoolstat = () => Linking.openURL(psLink)
-const onSubmit = async () => {
-  await setMatchData({
-    matchId: actionSheet.matchId,
-    compId: actionSheet.compId,
-    pin: actionSheet.matchPin,
-    title: streamTitle,
-    local: !!actionSheet.local,
-    description: desc,
-    destination: dest,
-    targetId: sel?.id,
-  })
-  await setActionSheet({})
-  modalA.current?.dismiss();
-  dismissAll();
-  navigation.navigate('GoLive')
-  setIsLoading(true)
-}
-const onCloseQR = async () => {
-  await setMatchData({
-    matchId: actionSheet.matchId,
-    compId: actionSheet.compId,
-    pin: actionSheet.matchPin,
-    title: streamTitle,
-    local: !!actionSheet.local,
-    description: desc,
-    destination: dest,
-    targetId: sel?.id,
-  })
-  await setActionSheet({})
-  await setShowQR(false)
-  modalF.current?.dismiss()
-  navigation.navigate('GoLive')
-  setIsLoading(true)
-}
+  // actions
+  const onStream = () => present(modalC)
+  const onReferee = () => {
+    dismiss(modalA)
+    navigation.navigate('PinCode', {
+      matchId: actionSheet.matchId,
+      pin: actionSheet.matchPin,
+    })
+  }
+  const onPoolstat = () => Linking.openURL(psLink)
+  const onSubmit = async () => {
+    await setMatchData({
+      matchId: actionSheet.matchId,
+      compId: actionSheet.compId,
+      pin: actionSheet.matchPin,
+      title: streamTitle,
+      local: !!actionSheet.local,
+      description: desc,
+      destination: dest,
+      targetId: sel?.id,
+    })
+    await setActionSheet({})
+    modalA.current?.dismiss();
+    dismissAll();
+    navigation.navigate('GoLive')
+    setIsLoading(true)
+  }
+  const onCloseQR = async () => {
+    await setMatchData({
+      matchId: actionSheet.matchId,
+      compId: actionSheet.compId,
+      pin: actionSheet.matchPin,
+      title: streamTitle,
+      local: !!actionSheet.local,
+      description: desc,
+      destination: dest,
+      targetId: sel?.id,
+    })
+    await setActionSheet({})
+    await setShowQR(false)
+    modalF.current?.dismiss()
+    navigation.navigate('GoLive')
+    setIsLoading(true)
+  }
 
-const copyToClipboard = async (copyText: any) => {
-  await Clipboard.setStringAsync(
-    typeof copyText === "string"
-      ? copyText
-      : typeof copyText === "number"
-        ? String(copyText)
-        : copyText
-          ? JSON.stringify(copyText)
-          : "" // Fallback: empty string if null/undefined
-  );
-};
+  const copyToClipboard = async (copyText: any) => {
+    await Clipboard.setStringAsync(
+      typeof copyText === "string"
+        ? copyText
+        : typeof copyText === "number"
+          ? String(copyText)
+          : copyText
+            ? JSON.stringify(copyText)
+            : "" // Fallback: empty string if null/undefined
+    );
+  };
 
-const onCopyPin = (text: any) => {
-  copyToClipboard(text)
-}
+  const onCopyPin = (text: any) => {
+    copyToClipboard(text)
+  }
 
-// header renderer uses modalTitle + onAccent
-const renderHeader = useCallback(
-  (text: string, onClose: () => void, onBack?: () => void) =>
-    (props: BottomSheetHandleProps) => (
-      <HeaderHandle
-        {...props}
-        onClose={onClose}
-        onBack={onBack}
-        showBack={!!onBack}
-        colors={colors}
-      >
-        {text}
-      </HeaderHandle>
-    ),
-  [colors]
-)
+  // header renderer uses modalTitle + onAccent
+  const renderHeader = useCallback(
+    (text: string, onClose: () => void, onBack?: () => void) =>
+      (props: BottomSheetHandleProps) => (
+        <HeaderHandle
+          {...props}
+          onClose={onClose}
+          onBack={onBack}
+          showBack={!!onBack}
+          colors={colors}
+        >
+          {text}
+        </HeaderHandle>
+      ),
+    [colors]
+  )
 
-return (
-  <>
-    {/* Main Sheet */}
-    <BottomSheetModal
-      ref={modalA}
-      snapPoints={['40%']}
-      enableDynamicSizing={false}
-      backgroundStyle={{
+  return (
+    <>
+      {/* Main Sheet */}
+      <BottomSheetModal
+        ref={modalA}
+        snapPoints={['40%']}
+        enableDynamicSizing={false}
+        backgroundStyle={{
 
-        backgroundColor: colors.secondary,
-        borderColor: colors.modalBorder,
-        borderRadius: 30,
-        borderWidth: 1.5,
-      }}
-      handleIndicatorStyle={{ backgroundColor: colors.foreground }}
-      handleComponent={renderHeader('Match Setup', () => dismiss(modalA))}
-    >
-      <MainSheetContent
-        onStream={onStream}
-        onReferee={onReferee}
-        onPoolstat={onPoolstat}
-        textColor={colors.modalText}
-      />
-    </BottomSheetModal>
-
-    {/* Destination Selection */}
-    <BottomSheetModal
-      ref={modalC}
-      snapPoints={['55%']}
-      enableDynamicSizing={false}
-      backgroundStyle={{
-
-        backgroundColor: colors.secondary,
-        borderColor: colors.modalBorder,
-        borderRadius: 30,
-        borderWidth: 1.5,
-      }}
-      handleIndicatorStyle={{ backgroundColor: colors.foreground }}
-      handleComponent={renderHeader(
-        'Share To',
-        () => dismiss(modalC),
-        () => present(modalA)
-      )}
-    >
-      <DestinationSelectionContent
-        selected={dest}
-        onSelectDest={d => {
-          setDest(d)
-          if (d === 'page') setList(samplePages)
-          else if (d === 'group') setList(sampleGroups)
-          else {
-            setList([])
-            setSel(null)
-          }
+          backgroundColor: colors.secondary,
+          borderColor: colors.modalBorder,
+          borderRadius: 30,
+          borderWidth: 1.5,
         }}
-        listData={list}
-        selectedItem={sel}
-        onSelectItem={setSel}
-        onNext={() => present(modalD)}
-        colors={colors}
-      />
-    </BottomSheetModal>
+        handleIndicatorStyle={{ backgroundColor: colors.foreground }}
+        handleComponent={renderHeader('Match Setup', () => dismiss(modalA))}
+      >
+        <MainSheetContent
+          onStream={onStream}
+          onReferee={onReferee}
+          onPoolstat={onPoolstat}
+          textColor={colors.modalText}
+        />
+      </BottomSheetModal>
 
-    {/* Title & Description */}
-    <BottomSheetModal
-      ref={modalD}
-      snapPoints={snapPointsD}
-      enableDynamicSizing={false}
-      backgroundStyle={{
+      {/* Destination Selection */}
+      <BottomSheetModal
+        ref={modalC}
+        snapPoints={['55%']}
+        enableDynamicSizing={false}
+        backgroundStyle={{
 
-        backgroundColor: colors.secondary,
-        borderColor: colors.modalBorder,
-        borderRadius: 30,
-        borderWidth: 1.5,
-      }}
-      handleIndicatorStyle={{ backgroundColor: colors.foreground }}
-      handleComponent={renderHeader(
-        'Title & Description',
-        () => dismiss(modalD),
-        () => present(modalC)
-      )}
-    >
-      <StreamTitleContent
-        title={streamTitle}
-        description={desc}
-        onChangeTitle={setStreamTitle}
-        onChangeDescription={setDesc}
-        onNext={() => present(modalE)}
-        colors={colors}
-      />
-    </BottomSheetModal>
+          backgroundColor: colors.secondary,
+          borderColor: colors.modalBorder,
+          borderRadius: 30,
+          borderWidth: 1.5,
+        }}
+        handleIndicatorStyle={{ backgroundColor: colors.foreground }}
+        handleComponent={renderHeader(
+          'Share To',
+          () => dismiss(modalC),
+          () => present(modalA)
+        )}
+      >
+        <DestinationSelectionContent
+          selected={dest}
+          onSelectDest={d => {
+            setDest(d)
+            if (d === 'page') setList(samplePages)
+            else if (d === 'group') setList(sampleGroups)
+            else {
+              setList([])
+              setSel(null)
+            }
+          }}
+          listData={list}
+          selectedItem={sel}
+          onSelectItem={setSel}
+          onNext={() => present(modalD)}
+          colors={colors}
+        />
+      </BottomSheetModal>
 
-    {/* Match Pin */}
-    <BottomSheetModal
-      ref={modalE}
-      snapPoints={['52%']}
-      enableDynamicSizing={false}
-      backgroundStyle={{
+      {/* Title & Description */}
+      <BottomSheetModal
+        ref={modalD}
+        snapPoints={snapPointsD}
+        enableDynamicSizing={false}
+        backgroundStyle={{
 
-        backgroundColor: colors.secondary,
-        borderColor: colors.modalBorder,
-        borderRadius: 30,
-        borderWidth: 1.5,
-      }}
-      handleIndicatorStyle={{ backgroundColor: colors.foreground }}
-      handleComponent={renderHeader(
-        'Match Pin',
-        () => dismiss(modalE),
-        () => present(modalD)
-      )}
-    >
-      <MatchPinContent
-        pin={actionSheet.matchPin}
-        onCopy={(pin: string) => onCopyPin(pin)}
-        onQR={expand}
-        onSubmit={onSubmit}
-        colors={colors}
-      />
-    </BottomSheetModal>
+          backgroundColor: colors.secondary,
+          borderColor: colors.modalBorder,
+          borderRadius: 30,
+          borderWidth: 1.5,
+        }}
+        handleIndicatorStyle={{ backgroundColor: colors.foreground }}
+        handleComponent={renderHeader(
+          'Title & Description',
+          () => dismiss(modalD),
+          () => present(modalC)
+        )}
+      >
+        <StreamTitleContent
+          title={streamTitle}
+          description={desc}
+          onChangeTitle={setStreamTitle}
+          onChangeDescription={setDesc}
+          onNext={() => present(modalE)}
+          colors={colors}
+        />
+      </BottomSheetModal>
 
-    {/* Detached QR Code */}
-    {/* {showQR && ( */}
-    <BottomSheetModal
-      ref={modalF}
-      detached
-      snapPoints={['75%']}
-      bottomInset={150}
-      enablePanDownToClose
-      handleIndicatorStyle={{
-        backgroundColor: colors.onPrimary,
-        marginTop: 10,
-        marginBottom: -30
-      }}
-      backgroundStyle={{
-        backgroundColor: colors.secondary,
-        borderColor: colors.modalBorder,
-        borderWidth: 1.5,
-      }}
-      style={styles.qrSheet}
-    >
-      <QRCodeContent
-        qrValue={`com.costream://MainTabs/Home?matchId=${actionSheet.matchId}`}
-        onClose={onCloseQR}
-        colors={colors}
-      />
-    </BottomSheetModal>
-    {/* )} */}
-  </>
-)
+      {/* Match Pin */}
+      <BottomSheetModal
+        ref={modalE}
+        snapPoints={['52%']}
+        enableDynamicSizing={false}
+        backgroundStyle={{
+
+          backgroundColor: colors.secondary,
+          borderColor: colors.modalBorder,
+          borderRadius: 30,
+          borderWidth: 1.5,
+        }}
+        handleIndicatorStyle={{ backgroundColor: colors.foreground }}
+        handleComponent={renderHeader(
+          'Match Pin',
+          () => dismiss(modalE),
+          () => present(modalD)
+        )}
+      >
+        <MatchPinContent
+          pin={actionSheet.matchPin}
+          onCopy={(pin: string) => onCopyPin(pin)}
+          onQR={expand}
+          onSubmit={onSubmit}
+          colors={colors}
+        />
+      </BottomSheetModal>
+
+      {/* Detached QR Code */}
+      {/* {showQR && ( */}
+      <BottomSheetModal
+        ref={modalF}
+        detached
+        snapPoints={['75%']}
+        bottomInset={150}
+        enablePanDownToClose
+        handleIndicatorStyle={{
+          backgroundColor: colors.onPrimary,
+          marginTop: 10,
+          marginBottom: -30
+        }}
+        backgroundStyle={{
+          backgroundColor: colors.secondary,
+          borderColor: colors.modalBorder,
+          borderWidth: 1.5,
+        }}
+        style={styles.qrSheet}
+      >
+        <QRCodeContent
+          qrValue={`com.costream://MainTabs/Home?matchId=${actionSheet.matchId}`}
+          onClose={onCloseQR}
+          colors={colors}
+        />
+      </BottomSheetModal>
+      {/* )} */}
+    </>
+  )
 })
 
 export default PoolstatSheet
