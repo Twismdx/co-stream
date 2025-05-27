@@ -20,7 +20,7 @@ import { upsertFcmToken, exchangeFbToken } from "../components/utils/API";
 import { MaterialIcons } from "@expo/vector-icons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useGlobalContext } from "../components/timer/context";
-import { getItem, clear } from "../components/utils/AsyncStorage";
+import { getItem, clear, setItem } from "../components/utils/AsyncStorage";
 import CustomButton from "../components/CustomButton";
 import InputField from "../components/InputField";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -74,37 +74,58 @@ const LoginScreen = ({ route }) => {
 
   const onFacebookButtonPress = async () => {
     setIsLoading(true);
-    await LoginWithFacebook();
-    const fbToken = await getItem("fbAccessToken");
-    if (!fbToken) {
-      console.log(
-        "Facebook token not available; user may need to log in again."
+    try {
+      await LoginWithFacebook();
+      const fbToken = await getItem("fbAccessToken");
+      if (!fbToken) {
+        console.log(
+          "Facebook token not available; user may need to log in again."
+        );
+        setIsLoading(false);
+        return;
+      }
+      const res = await exchangeFbToken(
+        fbToken,
+        user && user.id ? user.id : undefined
       );
-      return;
-    }
-    const res = await exchangeFbToken(fbToken, user.id);
-    if (res.error) {
-      console.log("Error exchanging Facebook token:", res.error);
-      return;
-    }
+      if (res.error) {
+        console.log("Error exchanging Facebook token:", res.error);
+        setIsLoading(false);
+        return;
+      }
 
-    const profile = await fetchFacebookProfile(res.access_token);
+      const profile = await fetchFacebookProfile(res.access_token);
 
-    await supabase.auth.updateUser({
-      data: {
-        name: profile.name,
-        email: profile.email,
-        avatar: profile.picture?.data?.url,
-      },
-    });
+      await supabase.auth.updateUser({
+        data: {
+          name: profile.name,
+          email: profile.email,
+          avatar: profile.picture?.data?.url,
+        },
+      });
 
-    const { data, error } = await supabase.from("users").update({
-      fb_token: res.access_token,
-      fb_token_expiry: res.fb_token_expiry,
-    });
+      await supabase
+        .from("users")
+        .update({
+          avatar_url: profile.picture?.data?.url,
+        })
+        .eq("id", user && user.id ? user.id : undefined);
 
-    if (error) {
-      console.log("Error updating user data:", error);
+      await supabase
+        .from("users")
+        .update({
+          fb_token: res.access_token,
+          fb_token_expiry: res.fb_token_expiry,
+        })
+        .eq("id", user && user.id ? user.id : undefined);
+
+      await setItem("isOnboarded", "true");
+      setIsLoggedIn(true);
+      setIsLoading(false);
+      navigation.navigate("MainTabs");
+    } catch (error) {
+      setIsLoading(false);
+      console.log("Facebook login error:", error);
     }
   };
 

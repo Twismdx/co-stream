@@ -1,5 +1,7 @@
 <resources>
   <string name="app_name">co-stream</string>
+  <string name="StallionProjectId">68229ca46608fc6d203cf8c5</string>
+  <string name="StallionAppToken">spb_eFNpzd0ClGuiDeodrwQRfpVkpuUEPxsifIyp0_sk6G</string>
   <string name="default_web_client_id" translatable="false">616611117861-07fpmevfhj81d6jmgos5f5rtnj0js4tm.apps.googleusercontent.com</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
@@ -71,4 +73,5 @@
   <string name="camera2" translatable="false">Camera2</string>
   <string name="camerax" translatable="false">CameraX</string>
   <string name="bitmap" translatable="false">Bitmap</string>
+  <string name="expo_runtime_version">1.0.0</string>
 </resources>

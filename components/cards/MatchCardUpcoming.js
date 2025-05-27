@@ -96,7 +96,7 @@ const MatchCardUpcoming = ({
       matchId: matchId,
       compId: compId,
       orgCode: orgCode,
-      matchPin: 'Loading...' // Initialize with loading state
+      matchPin: "Loading...", // Initialize with loading state
     });
     await setStreamTitle(`${home} Vs ${away}`);
     await setDesc(`${home} Vs ${away}`);
@@ -153,45 +153,16 @@ const MatchCardUpcoming = ({
     }
   }, [matchTime, home, away]);
 
-  const rContainerStyle = useAnimatedStyle(() => {
-    const activeIndex = upcomingScrollOffset.value / upcomingCardWidth;
-    const paddingLeft = (upcomingWindowWidth - upcomingCardWidth) / 4;
-    const translateX = interpolate(
-      activeIndex,
-      [index - 2, index - 1, index, index + 1],
-      [120, 60, 0, -upcomingCardWidth - paddingLeft * 2],
-      Extrapolation.CLAMP
-    );
-
-    const scale = interpolate(
-      activeIndex,
-      [index - 2, index - 1, index, index + 1],
-      [0.8, 0.9, 1, 1],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      left: paddingLeft,
-      transform: [
-        {
-          translateX: upcomingScrollOffset.value + translateX,
-        },
-        { scale },
-      ],
-    };
-  }, []);
-
   return (
-    <Animated.View
-      style={[
-        {
-          zIndex: -index,
-        },
-        rContainerStyle,
-      ]}
-    >
+    <View>
       <TouchableOpacity
-        style={[styles.container, { backgroundColor: activeColors.secondary }]}
+        style={[
+          styles.container,
+          {
+            backgroundColor: activeColors.surface,
+            shadowColor: activeColors.primary,
+          },
+        ]}
         onPress={handleData}
       >
         <View style={styles.contentContainer}>
@@ -262,7 +233,7 @@ const MatchCardUpcoming = ({
           </View>
         </View>
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -270,13 +241,12 @@ const styles = StyleSheet.create({
   container: {
     width: upcomingCardWidth,
     height: (upcomingCardWidth / 5) * 2,
-    borderRadius: 30,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
+    borderRadius: 25,
+    // backgroundColor: "#FFFFFF",
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 0.5,
+    shadowRadius: 1,
+    elevation: 12,
     position: "absolute",
   },
   contentContainer: {
@@ -292,6 +262,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 10,
+    paddingTop: 16,
     gap: 15,
   },
 

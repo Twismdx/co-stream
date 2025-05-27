@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+./costream-4720d.json
 
 # Expo
 .expo/

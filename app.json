@@ -3,7 +3,7 @@
     "name": "co-stream",
     "jsEngine": "hermes",
     "slug": "co-stream",
-    "version": "0.5.9",
+    "version": "0.6.0",
     "orientation": "portrait",
     "icon": "./assets/costream_icon.png",
     "scheme": "com.costream",
@@ -24,8 +24,17 @@
           },
           {
             "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
           }
         ]
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
       }
     },
     "android": {
@@ -49,7 +58,11 @@
         "backgroundColor": "#322257"
       },
       "package": "com.costream",
-      "permissions": ["android.permission.INTERNET"]
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.INTERNET"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "bundler": "metro",
@@ -63,15 +76,15 @@
         "expo-font",
         {
           "fonts": [
-            "node_modules/@expo-google-fonts/inter/Inter_900Black.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_100Thin.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_200ExtraLight.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_300Light.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_400Regular.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_500Medium.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_600SemiBold.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_700Bold.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_800ExtraBold.ttf"
+            "node_modules/@expo-google-fonts/inter/900Black/Inter_900Black.ttf",
+            "node_modules/@expo-google-fonts/inter/100Thin/Inter_100Thin.ttf",
+            "node_modules/@expo-google-fonts/inter/200ExtraLight/Inter_200ExtraLight.ttf",
+            "node_modules/@expo-google-fonts/inter/300Light/Inter_300Light.ttf",
+            "node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf",
+            "node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+            "node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
+            "node_modules/@expo-google-fonts/inter/800ExtraBold/Inter_800ExtraBold.ttf"
           ]
         }
       ],
@@ -91,7 +104,17 @@
           "project": "react-native",
           "organization": "brellatech"
         }
-      ]
+      ],
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "DEFAULT"
+        }
+      ],
+      "expo-localization",
+      "expo-router",
+      "expo-build-properties",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -100,6 +123,9 @@
       "eas": {
         "projectId": "2d06e151-fb4b-4e69-bcdf-93d7c390ec2b"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/2d06e151-fb4b-4e69-bcdf-93d7c390ec2b"
     }
   }
 }

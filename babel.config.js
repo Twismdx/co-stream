@@ -8,6 +8,7 @@ module.exports = function (api) {
         {
           alias: {
             "~": "./", // Use "./src" if your source files are under a src folder.
+            "@": "./",
           },
         },
       ],

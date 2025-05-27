@@ -288,7 +288,7 @@ export const QRCodeContent: FC<{
 )
 
 const styles = StyleSheet.create({
-    container: { paddingHorizontal: 20, gap: 12 },
+    container: { paddingHorizontal: 20, gap: 12, paddingBottom: 25 },
     item: { paddingVertical: 10 },
     text: { fontSize: 16 },
     options: { alignItems: 'center', marginVertical: 20 },

@@ -6,7 +6,7 @@ import {
     FlatList,
     TextInput,
     StyleSheet,
-    ActivityIndicator,
+    ActivityIndicator
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet'
@@ -183,9 +183,6 @@ export const MatchPinContent: FC<{
     onSubmit: () => void
     colors: any;
 }> = ({ pin, onCopy, onQR, onSubmit, colors }) => {
-    const isLoading = pin === 'Loading...';
-    const hasError = pin === 'Failed to load';
-    const hasValidPin = !isLoading && !hasError;
 
     return (
         <BottomSheetView style={[styles.container, { gap: 6 }]}>
@@ -193,39 +190,16 @@ export const MatchPinContent: FC<{
             <Text style={[styles.hint, { color: colors.foreground, marginBottom: 6 }]}>
                 {'Got a Umpire / Referee ?\nSend someone a invite, Share the QR code or just tell them the pin.'}
             </Text>
-
-            {isLoading && (
-                <View style={styles.centerContent}>
-                    <ActivityIndicator size="large" color={colors.accent} />
-                    <Text style={[styles.loadingText, { color: colors.foreground }]}>
-                        Loading match pin...
-                    </Text>
-                </View>
-            )}
-
-            {hasError && (
-                <View style={styles.centerContent}>
-                    <Text style={[styles.errorText, { color: colors.error }]}>
-                        Failed to load match pin. Please try again.
-                    </Text>
-                </View>
-            )}
-
-            {hasValidPin && (
-                <TouchableOpacity onPress={onCopy} disabled={!hasValidPin}>
-                    <Text style={[styles.pin, { color: colors.foreground }]}>{pin}</Text>
-                    <Text style={[styles.tapHint, { color: colors.foreground }]}>
-                        Tap to copy!
-                    </Text>
-                </TouchableOpacity>
-            )}
-
+            <TouchableOpacity onPress={() => Clipboard.setStringAsync(pin ?? "")}>
+                <Text style={[styles.pin, { color: colors.foreground }]}>{pin}</Text>
+                <Text style={[styles.tapHint, { color: colors.foreground }]}>Tap to copy!</Text>
+            </TouchableOpacity>
             <View style={styles.containerB}>
                 <View style={styles.row}>
                     <View style={styles.sideButtonWrapper}>
                         <CustomButton
                             label="Invite"
-                            disabled={true}
+                            disabled
                             onPress={null}
                             style={{}}
                             textStyle={{}}
@@ -238,7 +212,6 @@ export const MatchPinContent: FC<{
                         <CustomButton
                             label="QR Code"
                             onPress={onQR}
-                            disabled={!hasValidPin}
                             style={{}}
                             textStyle={{}}
                             accessibilityLabel="QR Code"
@@ -250,7 +223,6 @@ export const MatchPinContent: FC<{
                 <CustomButton
                     label="Submit"
                     onPress={onSubmit}
-                    disabled={!hasValidPin}
                     style={{}}
                     textStyle={{}}
                     accessibilityLabel="Submit"
@@ -259,8 +231,8 @@ export const MatchPinContent: FC<{
                 />
             </View>
         </BottomSheetView>
-    );
-};
+    )
+}
 
 export const QRCodeContent: FC<{
     qrValue: string
@@ -268,6 +240,7 @@ export const QRCodeContent: FC<{
     colors: any;
 }> = ({ qrValue, onClose, colors }) => {
     const fallbackURL = 'https://costream.com';
+
     const safeQRValue = typeof qrValue === 'string' && qrValue.length > 0 ? qrValue : fallbackURL;
 
     return (
@@ -277,14 +250,14 @@ export const QRCodeContent: FC<{
             </Text>
             <Separator />
             <View style={styles.qrBox}>
-                <QRCode value={safeQRValue} size={200} color="black" backgroundColor="white" />
+                <QRCode value={qrValue} size={200} color="black" backgroundColor="white" />
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
         </BottomSheetView>
-    );
-}
+    )
+};
 
 const styles = StyleSheet.create({
     centerContent: {
@@ -302,7 +275,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '500',
     },
-    container: { paddingHorizontal: 20, gap: 12 },
+    container: { paddingHorizontal: 20, gap: 12, paddingBottom: 25 },
     item: { paddingVertical: 10 },
     text: { fontSize: 16 },
     destButton: {

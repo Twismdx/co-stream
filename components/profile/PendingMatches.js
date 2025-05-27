@@ -16,6 +16,7 @@ import {
   acceptChallenge,
   counterOfferChallenge,
   declineChallenge,
+  cancelChallenge,
 } from "../utils/API";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -45,7 +46,7 @@ const PendingMatches = () => {
         userId: user.id,
         complete: "incomplete",
       });
-      // Ensure we store an array; if data isn’t iterable, default to []
+      // Ensure we store an array; if data isn't iterable, default to []
       setChallenges(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching challenges:", error);
@@ -103,6 +104,15 @@ const PendingMatches = () => {
     navigation.navigate("Home");
   };
 
+  const handleCancel = async (challengeid) => {
+    try {
+      await cancelChallenge(challengeid);
+    } catch (error) {
+      console.error("Error cancelling challenge:", error);
+    }
+    await onRefresh();
+  };
+
   const renderItem = ({ item }) => {
     // Determine opponent name: show the one not equal to the current user.id.
     const opponentName =
@@ -117,8 +127,8 @@ const PendingMatches = () => {
       : "No date available";
 
     // Create title and subtitle for the accordion header.
-    const title = opponentName || "Unknown";
-    const subTitle = `${formattedDate} • Race to ${item.race_length}`;
+    const title = formattedDate;
+    const subTitle = `Vs ${opponentName}\n${item.discipline}\nRace to ${item.race_length}`;
 
     return (
       <AccordionCard title={title} subTitle={subTitle}>
@@ -213,7 +223,7 @@ const PendingMatches = () => {
             {item.break_type || "No break type available"}
           </StyledText>
         </View>
-        {/* Action buttons only if pending and user is the challenged recipient */}
+        {/* Action buttons for challenged recipient */}
         {item.status === "pending" && item.opponent === user.id && (
           <View style={styles.buttonContainer}>
             <CustomButton
@@ -244,6 +254,19 @@ const PendingMatches = () => {
             />
           </View>
         )}
+        {/* Action button for challenge sender (owner) to cancel */}
+        {item.owner === user.id && (
+          <View style={styles.buttonContainer}>
+            <CustomButton
+              label="Cancel"
+              onPress={() => handleCancel(item.challengeid)}
+              buttonColor={activeColors.error || "#F44336"}
+              cancel
+              color={activeColors.foreground}
+              style={styles.actionButton}
+            />
+          </View>
+        )}
       </AccordionCard>
     );
   };
@@ -256,7 +279,7 @@ const PendingMatches = () => {
         keyExtractor={(item) => item.challengeid.toString()}
         renderItem={renderItem}
         ListEmptyComponent={
-          <>
+          <View>
             <ActivityIndicator
               animating={isLoading}
               color={activeColors.accent}
@@ -269,7 +292,7 @@ const PendingMatches = () => {
                 No challenges available.
               </Text>
             )}
-          </>
+          </View>
         }
         contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 25 }}
         refreshControl={

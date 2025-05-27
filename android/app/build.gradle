@@ -61,6 +61,11 @@ react {
 
     /* Autolinking */
     autolinkLibrariesWithApp()
+    //
+    // Added by install-expo-modules
+    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
+    cliFile = new File(["node", "--print", "require.resolve('@expo/cli')"].execute(null, rootDir).text.trim())
+    bundleCommand = "export:embed"
 }
 
 /**
@@ -93,8 +98,8 @@ android {
         applicationId 'com.costream'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 59
-        versionName "0.5.9"
+        versionCode 60
+        versionName "0.6.0"
     }
 
     signingConfigs {
@@ -132,6 +137,18 @@ android {
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+    }
+
+    configurations.all {
+        // Exclude expo-dev-menu to fix build issues
+        exclude group: 'expo.modules.devmenu', module: 'expo-dev-menu'
+    }
+}
+
+// Disable KSP for this module
+afterEvaluate {
+    tasks.matching { it.name.contains('ksp') }.all {
+        enabled = false
     }
 }
 
@@ -175,7 +192,7 @@ dependencies {
     // implementation project(':picovoice_rhino-react-native')
     // implementation project(':picovoice_react-native-voice-processor')
 
-    implementation project(':notifee_react-native')
+    // implementation project(':notifee_react-native')
     
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
@@ -199,5 +216,27 @@ dependencies {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+}
+
+buildscript {
+    ext {
+        kotlinVersion = '2.0.21'
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        // ... other classpaths
+    }
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
     }
 }

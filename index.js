@@ -1,3 +1,8 @@
+import "react-native-url-polyfill/auto";
+import { Buffer } from "buffer";
+global.Buffer = global.Buffer || Buffer;
+import process from "process";
+global.process = process;
 import { registerRootComponent } from "expo";
 import App from "./App";
 import notifee, { AndroidImportance, EventType } from "@notifee/react-native";

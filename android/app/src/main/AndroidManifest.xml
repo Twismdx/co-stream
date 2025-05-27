@@ -42,9 +42,12 @@
     <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="true"/>
     <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
     <meta-data android:name="com.google.android.gms.auth.api.signin.v3.API_KEY" android:value="@string/default_web_client_id"/>
-    <meta-data android:name="expo.modules.updates.ENABLED" android:value="false"/>
+    <meta-data android:name="expo.modules.updates.ENABLED" android:value="true"/>
+    <meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="@string/expo_runtime_version"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/2d06e151-fb4b-4e69-bcdf-93d7c390ec2b"/>
+    <meta-data android:name="expo.modules.devmenu.DEV_MENU_ENABLED" android:value="false"/>
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode|locale|layoutDirection" android:launchMode="singleTask" android:theme="@style/Theme.App.SplashScreen" android:exported="true" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

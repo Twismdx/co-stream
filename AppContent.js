@@ -27,6 +27,7 @@ import ActivityLoader from "./components/utils/ActivityLoader";
 import Toast from "~/components/ui/toast";
 import { getMessaging } from "@react-native-firebase/messaging";
 import { upsertFcmToken } from "~/components/utils/API";
+import OnboardingScreen from "./screens/OnboardingScreen";
 
 // deep-link map
 export const deepLinkMap = {
@@ -105,6 +106,17 @@ export default function AppContent() {
   } = useGlobalContext();
 
   const [notifeeDialog, setNotifeeDialog] = useState(false);
+  const [isOnboarded, setIsOnboarded] = useState(null); // null = not checked yet
+
+  // Check onboarding status on app launch (not just after session)
+  useEffect(() => {
+    async function checkOnboarding() {
+      const onboarded = await getItem("isOnboarded");
+      console.log("onboarded", onboarded);
+      setIsOnboarded(onboarded);
+    }
+    checkOnboarding();
+  }, []);
 
   // Supabase auth listener
   useEffect(() => {
@@ -149,7 +161,7 @@ export default function AppContent() {
   // External-token check & routing on fresh sign-in
   useEffect(() => {
     async function bootstrap() {
-      if (!session) return;
+      if (!session || !session.user || !session.user.id) return;
       try {
         const fbToken = await getMessaging().getToken();
         await upsertFcmToken(session.user.id, fbToken);
@@ -157,7 +169,8 @@ export default function AppContent() {
       const currentUser = await getCurrentUser(session.user.id);
       if (currentUser) setUser(currentUser);
 
-      if (!freshSignIn) {
+      const isOnboarded = await getItem("isOnboarded");
+      if (isOnboarded === "true") {
         setIsLoggedIn(true);
         if (navigation.isReady()) {
           navigation.navigate("MainTabs");
@@ -166,13 +179,17 @@ export default function AppContent() {
             showToast(name);
           }, 1000);
         }
+      } else {
+        if (navigation.isReady()) {
+          navigation.navigate("Onboarding");
+        }
       }
     }
     bootstrap();
   }, [session, freshSignIn, setUser, setIsLoggedIn, showToast]);
 
   // Presence
-  useUserPresence(user?.id);
+  useUserPresence(user && user.id ? user.id : undefined);
 
   // Handle in-app notifications
   useEffect(() => {
@@ -192,6 +209,29 @@ export default function AppContent() {
     setNotifeeDialog(true);
   };
 
+  // Onboarding always checked first
+  if (isOnboarded === null) {
+    // Still checking onboarding status
+    return (
+      <ActivityLoader>
+        <Text>Loading…</Text>
+      </ActivityLoader>
+    );
+  }
+
+  if (isOnboarded === false) {
+    // Show onboarding, block all other navigation
+    return (
+      <OnboardingScreen
+        onDone={async () => {
+          await setItem("isOnboarded", "true");
+          setIsOnboarded(true);
+        }}
+      />
+    );
+  }
+
+  // If onboarded, proceed with the rest of the app (login/session logic)
   return (
     <ActivityLoader>
       <StatusBar style="auto" />

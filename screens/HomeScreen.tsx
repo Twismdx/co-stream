@@ -24,6 +24,7 @@ import axios from 'axios'
 import { setItem, getItem } from '~/components/utils/AsyncStorage'
 import { supabase } from '~/components/utils/supabase'
 import { TourGuideZoneByPosition } from 'rn-tourguide'
+import { Modal, Text } from "react-native";
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -42,6 +43,7 @@ const HomeScreen: React.FC = () => {
     setActionSheet,
     openSearchModal,
     selectedUser,
+    isLoading,
   } = useGlobalContext()
 
   const activeColors = theme.colors[theme.mode]
@@ -51,13 +53,14 @@ const HomeScreen: React.FC = () => {
   const navigation = useNavigation()
   const poolstatRef = useRef<PoolstatSheetHandle>(null)
   const challengeRef = useRef<{ openSetup: () => void }>(null)
+  const [modalVisible, setModalVisible] = useState(false);
 
   const openPoolstat = () => poolstatRef.current?.openPoolstatA()
   const openChallenge = () => challengeRef.current?.openSetup()
 
   useEffect(() => {
     if (!actionSheet.matchId) return
-    
+
     const getPinWithRetry = async (retryDelay = 1000, maxRetries = 5) => {
       let attempt = 0;
       while (attempt < maxRetries) {
@@ -66,11 +69,11 @@ const HomeScreen: React.FC = () => {
           .select('pin')
           .eq('matchid', actionSheet.matchId)
           .single()
-          
+
         if (!error && data?.pin) {
           return data.pin;
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, retryDelay));
         retryDelay *= 2; // Exponential backoff
         attempt++;
@@ -178,6 +181,24 @@ const HomeScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>
+      <Modal transparent visible={modalVisible}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#00000088",
+          }}
+        >
+          <View
+            style={{ backgroundColor: "#fff", padding: 20, borderRadius: 10 }}
+          >
+            <Text style={{ marginBottom: 10 }}>
+              A new update is ready to install.
+            </Text>
+          </View>
+        </View>
+      </Modal>
       <TourGuideZoneByPosition
         zone={1}
         isTourGuide

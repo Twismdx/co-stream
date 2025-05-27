@@ -1,4 +1,7 @@
+// PinCode.js
+
 import React, { useRef, useEffect, useState, useCallback } from "react";
+import { Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { PinScreen } from "react-native-awesome-pin";
 import { useGlobalContext } from "~/components/timer/context";
@@ -7,172 +10,61 @@ import ActivityLoader from "@/components/utils/ActivityLoader";
 import Toast from "~/components/ui/toast";
 import * as Clipboard from "expo-clipboard";
 import Dialog from "./AlertDialog";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 
 const PinCode = ({ route }) => {
   const pinScreenRef = useRef(null);
-  const routePin = route?.params?.pin; // Your expected PIN
+  const routePin = route?.params?.pin;
   const challengeId = route?.params?.challengeId;
   const { theme, copy, setCopy, isLoading, setIsLoading } = useGlobalContext();
   const activeColors = theme.colors[theme.mode];
+
   const [stats, setStats] = useState({});
   const [sendPin, setSendPin] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const [expectedPin, setExpectedPin] = useState(null);
-  const navigation = useNavigation();
   const [message, setMessage] = useState("");
+  const navigation = useNavigation();
 
-  const handlePaste = async () => {
-    const text = await Clipboard.getStringAsync();
-    if (text) {
-      // Only digits, max 6
-      const sanitized = text.replace(/\D/g, "").slice(0, 6);
-      setPin(sanitized);
-      // If pin is complete, trigger receivePin
-      if (sanitized.length === 6) {
-        receivePin(sanitized);
-      }
-    }
-  };
-
-  async function searchPoolstatPins(pin) {
-    const { data, error } = await supabase
-      .from("poolstat_match_pins")
-      .select("*")
-      .eq("pin", pin)
-      .single();
-
-    if (error) {
-      console.log("Not in poolstat_match_pins, trying challenges…", error);
-      return error;
-    }
-
-    return data;
-  }
-
-  async function searchChallengePins(pin) {
-    const { data, error } = await supabase
-      .from("challenges")
-      .select("*")
-      .eq("pin", pin)
-      .single();
-
-    if (error) {
-      console.log("Not in challenges either...", error);
-      return error;
-    }
-
-    return data;
-  }
-
-  async function getPoolstatNames(pin) {
-    let result;
-    const poolstatRes = await searchPoolstatPins(pin);
-    const challengeRes = await searchChallengePins(pin);
-    if (poolstatRes?.pin === pin) {
-      result = poolstatRes;
-    } else if (challengeRes?.pin === pin) {
-      result = challengeRes;
-    } else {
-      console.log("Pin not found in either table");
-      return;
-    }
-
-    const compid = result?.compid ?? null;
-    const matchid = result?.matchid ?? null;
-    const challengeid = result?.challengeid ?? null;
-
-    if (matchid !== null) {
-      const response = await fetch(
-        `https://scrbd.co-stream.live/api/livescores?compId=${encodeURIComponent(
-          compid
-        )}&matchId=${encodeURIComponent(matchid)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!response.ok) {
-        console.log("Livescores API error:", response.status);
-        return null;
-      }
-
-      const json = await response.json();
-      const entries = Object.values(json);
-
-      if (!entries.length) {
-        console.log("Livescores API returned no entries");
-        return null;
-      }
-
-      return `${entries[0].hometeamlabel} vs ${entries[0].awayteamlabel}`;
-    } else if (challengeid !== null) {
-      const { data, error } = await supabase
-        .from("challenges")
-        .select("homeTeam,awayTeam")
-        .eq("challengeid", challengeid)
-        .single();
-
-      if (error) {
-        console.log("Error retrieving data: ", error);
-        return;
-      }
-
-      return `${data.homeTeam} vs ${data.awayTeam}`;
-    } else return null;
-  }
-
+  // load clipboard text
   const fetchCopiedText = async () => {
     const text = await Clipboard.getStringAsync();
-    if (text) {
-      setCopy(text);
-    }
+    if (text) setCopy(text);
   };
-
   useEffect(() => {
     fetchCopiedText();
   }, []);
 
+  // store expected PIN if provided
   useEffect(() => {
-    if (routePin) {
-      setExpectedPin(routePin);
-    }
+    if (routePin) setExpectedPin(routePin.toString());
   }, [routePin]);
 
-  const errorToast = useCallback((error1, error2, style1, style2, type) => {
+  const errorToast = useCallback((t1, t2, s1, s2, type) => {
     Toast.show({
-      text1Style: style1 ? style1 : null,
-      text2Style: style2 ? style2 : null,
-      type: type ? type : "error",
-      text1: error1 ? error1 : "Oops, Something has gone wrong.",
-      text2: error2
-        ? error2
-        : `We can't seem to work out what's wrong, Please close and restart the app.`,
+      text1Style: s1 || null,
+      text2Style: s2 || null,
+      type: type || "error",
+      text1: t1 || "Oops, Something went wrong.",
+      text2: t2 || "Please restart the app and try again.",
       visibilityTime: 3000,
     });
   }, []);
 
+  // fetch challenge teams
   const getData = async () => {
-    if (challengeId) {
-      const { data: matchData, error: matchError } = await supabase
-        .from("challenges")
-        .select("homeTeam,awayTeam")
-        .eq("challengeid", challengeId)
-        .single();
-
-      if (matchError) {
-        console.error("Error retrieving data: ", matchError);
-      }
-
-      setStats(matchData);
-      setStats((prev) => ({
-        ...prev,
-        challengeid: challengeId,
-      }));
+    if (!challengeId) return;
+    const { data, error } = await supabase
+      .from("challenges")
+      .select("homeTeam,awayTeam")
+      .eq("challengeid", challengeId)
+      .single();
+    if (error) {
+      console.error("Error retrieving data:", error);
+      return;
     }
+    setStats({ ...data, challengeid: challengeId });
   };
-
   useEffect(() => {
     getData();
   }, [challengeId]);
@@ -180,32 +72,28 @@ const PinCode = ({ route }) => {
   const receivePin = (pin) => {
     pinScreenRef.current?.clearError();
 
+    // validating flow
     if (expectedPin) {
       if (pin.length < expectedPin.length) return;
-
       if (pin === expectedPin) {
         setCopy(null);
-        setIsLoading(true);
+        setIsLoading(false);
         navigation.navigate("MainTabs", {
           screen: "Timer",
-          params: { stats: stats, pin: stats.pin, syncTimer: true },
+          params: { stats, pin: stats.pin, syncTimer: true },
         });
       } else {
         pinScreenRef.current?.throwError("Incorrect Match Pin");
       }
-
       return;
     }
 
-    if (pin.length !== 6) {
-      return;
-    }
-
+    // lookup flow
+    if (pin.length !== 6) return;
     (async () => {
       const matchDesc = await getPoolstatNames(pin);
-
-      if (matchDesc === null) {
-        return errorToast(
+      if (!matchDesc) {
+        errorToast(
           "Pin not found!",
           "Please check the pin and try again.",
           { fontSize: 14, color: activeColors.error },
@@ -220,49 +108,122 @@ const PinCode = ({ route }) => {
     })();
   };
 
-  // --- Custom Keyboard Layout ---
-  // Bottom left: Paste, Bottom right: Custom icon (Ionicons)
+  // helpers for lookup...
+  async function searchPoolstatPins(pin) {
+    const { data, error } = await supabase
+      .from("poolstat_match_pins")
+      .select("*")
+      .eq("pin", pin)
+      .single();
+    if (error) return null;
+    return data;
+  }
+  async function searchChallengePins(pin) {
+    const { data, error } = await supabase
+      .from("challenges")
+      .select("*")
+      .eq("pin", pin)
+      .single();
+    if (error) return null;
+    return data;
+  }
+  async function getPoolstatNames(pin) {
+    const pool = await searchPoolstatPins(pin);
+    const chall = await searchChallengePins(pin);
+    const result = pool?.pin === pin ? pool : chall?.pin === pin ? chall : null;
+    if (!result) return null;
+
+    if (result.matchid != null) {
+      const resp = await fetch(
+        `https://scrbd.co-stream.live/api/livescores?compId=${encodeURIComponent(
+          result.compid
+        )}&matchId=${encodeURIComponent(result.matchid)}`,
+        { method: "POST", headers: { "Content-Type": "application/json" } }
+      );
+      if (!resp.ok) return null;
+      const json = await resp.json();
+      const entries = Object.values(json);
+      if (!entries.length) return null;
+      return `${entries[0].hometeamlabel} vs ${entries[0].awayteamlabel}`;
+    } else {
+      const { data, error } = await supabase
+        .from("challenges")
+        .select("homeTeam,awayTeam")
+        .eq("challengeid", result.challengeid)
+        .single();
+      if (error) return null;
+      return `${data.homeTeam} vs ${data.awayTeam}`;
+    }
+  }
+
+  const handlePaste = async () => {
+    const text = await Clipboard.getStringAsync();
+    if (!text) return;
+
+    // grab up to 6 digits
+    const digits = text.replace(/\D/g, "").slice(0, 6).split("");
+
+    // dispatch each keystroke with a small delay
+    digits.forEach((d, i) => {
+      setTimeout(() => {
+        pinScreenRef.current?.keyDown(d);
+      }, i * 50); // 50ms between each key press
+    });
+  };
+
+  // back handler
+  const handleBack = () => pinScreenRef.current?.keyDown("back");
+
   const keyboard = [
     [1, 2, 3],
     [4, 5, 6],
     [7, 8, 9],
-    [
-      // Bottom row: [Paste, 0, CustomIcon]
-      // We'll use a string "paste" for the left, and a React element for the right
-      "paste",
-      0,
-      <Ionicons
-        name="backspace-outline"
-        size={28}
-        color={activeColors.accent}
-      />,
-    ],
+    ["paste", 0, "back"],
   ];
-
-  // --- Custom Keyboard Functions ---
-  // Map actions for bottom row: [Paste, 0, CustomIcon]
   const keyboardFunc = [
     [null, null, null],
     [null, null, null],
     [null, null, null],
-    [
-      // Bottom row: [Paste, 0, CustomIcon]
-      () => handlePaste(),
-      null,
-      null,
-    ],
+    [null, null, handleBack],
   ];
+
+  // *** wrap numbers in <Text> so you never return a raw primitive
+  const renderKey = (key) => {
+    if (key === "back") {
+      return (
+        <Ionicons
+          name="backspace-outline"
+          size={28}
+          color={activeColors.accent}
+        />
+      );
+    }
+    if (key === "paste") {
+      return (
+        <Ionicons
+          name="clipboard-outline"
+          size={28}
+          color={activeColors.accent}
+        />
+      );
+    }
+    return (
+      <Text style={{ fontSize: 25, color: activeColors.foreground }}>
+        {key}
+      </Text>
+    );
+  };
 
   return (
     <>
       {showDialog && (
         <Dialog
-          title={"Confirmation"}
-          desc={`Is this the match you are trying to connect to?`}
+          title="Confirmation"
+          desc="Is this the match you are trying to connect to?"
           desc2={message}
-          desc3={`If this is not what you expected, Please check the pin and try again.`}
-          cancel={"Try Again"}
-          action={"Connect"}
+          desc3="If this is not what you expected, please check the pin and try again."
+          cancel="Try Again"
+          action="Connect"
           open={showDialog}
           actionPress={() => {
             setShowDialog(false);
@@ -270,37 +231,39 @@ const PinCode = ({ route }) => {
               screen: "Timer",
               params: { pin: sendPin, syncTimer: false },
             });
-            setMessage(null);
+            setMessage("");
             setCopy(null);
             setIsLoading(true);
             setExpectedPin(null);
           }}
           cancelPress={() => {
             setShowDialog(false);
-            setMessage(null);
+            setMessage("");
             setExpectedPin(null);
           }}
         />
       )}
+
       <PinScreen
-        copy={copy ? copy : null}
         onRef={(ref) => (pinScreenRef.current = ref)}
+        keyDown={receivePin}
+        numberOfPins={6}
+        copy={copy}
         tagline="Enter Match Pin"
         logo={require("~/assets/splashscreen_image_foreground.png")}
         containerStyle={{ backgroundColor: activeColors.accentVariant }}
-        keyDown={receivePin}
-        numberOfPins={6}
         headerBackgroundColor={activeColors.accentVariant}
-        footerBackgroundColor={activeColors.foreground} // changes the SafeAreaView wrapping the keyboard
-        keyboardStyle={{ backgroundColor: activeColors.foreground }} // applies to the PinKeyboard container (if supported)
+        footerBackgroundColor={activeColors.foreground}
+        keyboardStyle={{ backgroundColor: activeColors.foreground }}
         keyStyle={{
           backgroundColor: activeColors.border,
           color: activeColors.foreground,
-        }} // individual key background
-        keyTextStyle={{ color: activeColors.foreground }} // individual key text color
+        }}
+        keyTextStyle={{ color: activeColors.foreground }}
         keyImageStyle={{ tintColor: activeColors.foreground }}
         keyboard={keyboard}
         keyboardFunc={keyboardFunc}
+        renderKey={renderKey}
       />
     </>
   );

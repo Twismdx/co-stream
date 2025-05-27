@@ -8,16 +8,25 @@
       "developmentClient": true,
       "distribution": "internal",
       "autoIncrement": false,
-      "env": { "EXPO_USE_COMMUNITY_AUTOLINKING": "1" }
+      "env": {
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "1"
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
       "autoIncrement": false,
-      "env": { "EXPO_USE_COMMUNITY_AUTOLINKING": "1" }
+      "env": {
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "1"
+      },
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": false,
-      "env": { "EXPO_USE_COMMUNITY_AUTOLINKING": "1" }
+      "env": {
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "1"
+      },
+      "channel": "production"
     }
   },
   "submit": {

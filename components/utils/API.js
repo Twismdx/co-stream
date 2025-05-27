@@ -372,3 +372,21 @@ export const exchangeFbToken = async (shortLivedToken, userId) => {
   console.log("Long-lived FB token response:", result);
   return result;
 };
+
+/**
+ * Cancel a challenge (by the owner).
+ * POST /challenge/cancel
+ *
+ * @param {string|number} challengeId - The ID of the challenge to cancel.
+ * @returns {Promise<Object>} The response from the API.
+ */
+export async function cancelChallenge(challengeId) {
+  const response = await fetch(`${API_BASE_URL}/challenge/cancel`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ challengeId }),
+  });
+  return handleResponse(response);
+}

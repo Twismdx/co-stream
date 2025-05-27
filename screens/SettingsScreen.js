@@ -224,7 +224,7 @@ const SettingsScreen = ({ navigation }) => {
         </View>
 
         <StyledText style={{ color: activeColors.accent }} bold>
-          Reset Data Source
+          View Tutorial / App Guide
         </StyledText>
         <View style={styles.section}>
           <SettingsItem>
@@ -237,9 +237,9 @@ const SettingsScreen = ({ navigation }) => {
                 }}
                 color="black"
                 buttonColor={activeColors.accent}
-                label="Reset"
+                label="Launch Tutorial"
                 width="70%"
-                onPress={resetSelectedSource}
+                onPress={() => navigation.navigate("Onboarding")}
               />
             </View>
           </SettingsItem>

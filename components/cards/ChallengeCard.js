@@ -269,6 +269,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingTop: 15,
   },
   teamNameBlock: {
     width: "30%",

@@ -31,6 +31,7 @@ import Toast from "~/components/ui/toast";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import DropDown from "~/components/modals/DropDown";
 import VerticalSlider from "rn-vertical-slider";
+import * as ScreenOrientation from "expo-screen-orientation";
 
 const StreamScreen = ({ route, navigation }) => {
   const {
@@ -89,13 +90,13 @@ const StreamScreen = ({ route, navigation }) => {
   const [errorUserTitle, setErrorUserTitle] = useState(null);
   const { portrait } = useDeviceOrientation();
   const orientation = useDeviceOrientation();
-  const compId = matchData?.compId ?? null;
-  const matchId = matchData?.matchId ?? null;
-  const challengeId = matchData?.challengeId ?? null;
-  const pin = matchData?.pin ?? null;
-  const streamTitle = matchData?.title ?? null;
-  const description = matchData?.description ?? null;
-  const destination = matchData?.destination ?? null;
+  const compId = route.params?.compId ?? null;
+  const matchId = route.params?.matchId ?? null;
+  const challengeId = route.params?.challengeId ?? null;
+  const pin = route.params?.pin ?? null;
+  const streamTitle = route.params?.title ?? null;
+  const description = route.params?.description ?? null;
+  const destination = route.params?.destination ?? null;
 
   const sliderRef = useRef(null);
   const zoomPercent = ((zoomLevel - minRange) / (maxRange - minRange)) * 100;
@@ -126,6 +127,7 @@ const StreamScreen = ({ route, navigation }) => {
     if (ready) {
       setIsPortrait(true);
       RTMPModule.setIsPortrait(true);
+      console.log("portrait");
     }
   };
 
@@ -134,14 +136,38 @@ const StreamScreen = ({ route, navigation }) => {
       setIsPortrait(false);
       RTMPModule.setIsPortrait(false);
     }
+    console.log("landscape");
   };
 
   useEffect(() => {
-    if (ready) {
-      console.log(orientation);
-      orientation === "portrait" ? setIsVertical() : setIsHorizontal();
-    }
-  }, [ready, orientation]);
+    // only start listening once the stream is ready
+    if (!ready) return;
+
+    const subscription = ScreenOrientation.addOrientationChangeListener(
+      ({ orientationInfo }) => {
+        const o = orientationInfo.orientation;
+        // portrait up or down → vertical
+        if (
+          o === ScreenOrientation.Orientation.PORTRAIT_UP ||
+          o === ScreenOrientation.Orientation.PORTRAIT_DOWN
+        ) {
+          setIsVertical();
+        }
+        // landscape left or right → horizontal
+        else if (
+          o === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+          o === ScreenOrientation.Orientation.LANDSCAPE_RIGHT
+        ) {
+          setIsHorizontal();
+        }
+      }
+    );
+
+    return () => {
+      // clean up the listener when this screen unmounts
+      ScreenOrientation.removeOrientationChangeListener(subscription);
+    };
+  }, [ready, setIsVertical, setIsHorizontal]);
 
   const getProfileUrls = async (
     streamTitle,
@@ -404,6 +430,11 @@ const StreamScreen = ({ route, navigation }) => {
   );
 
   useEffect(() => {
+    if (!destination) {
+      // nothing to do until we have a real destination
+      return;
+    }
+
     const setupLiveVideo = () => {
       if (destination === "profile") {
         getProfileUrls(
@@ -525,7 +556,7 @@ const StreamScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     if (useScoreboard) {
-      const challenge = !matchId && challengeId ? true : false;
+      const challenge = challengeId ? true : false;
       const currentCompId = compId || "0";
       const isLandscape = isPortrait ? false : true;
       console.log("challenge: ", challenge);
@@ -541,8 +572,8 @@ const StreamScreen = ({ route, navigation }) => {
           );
         } else if (challenge == false) {
           RTMPModule.setMatchOverlay(
-            currentCompId,
-            matchId,
+            currentCompId.toString(),
+            matchId.toString(),
             challenge,
             isLandscape
           );

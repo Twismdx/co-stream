@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, useWindowDimensions } from 'react-native'
 import BottomSheet, {
   BottomSheetModal,
   BottomSheetHandleProps,
@@ -60,6 +60,10 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
   const modalE = useRef<BottomSheetModal>(null)
   const modalF = useRef<BottomSheetModal>(null)
 
+  const { height: screenHeight } = useWindowDimensions();
+  const qrHeight = 355;
+  const bottomInset = (screenHeight - qrHeight) / 2
+
   // expose .openPoolstatA()
   useImperativeHandle(ref, () => ({
     openPoolstatA: () => modalA.current?.present()!,
@@ -86,9 +90,6 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
   const present = useCallback((m: React.RefObject<any>) => m.current?.present(), [])
   const dismiss = useCallback((m: React.RefObject<any>) => m.current?.dismiss(), [])
   const expand = useCallback(() => {
-    if (!isPinReady(actionSheet.matchPin)) {
-      return; // Don't expand if pin isn't ready
-    }
     dismissAll();
     setShowQR(true)
     modalF.current?.present();
@@ -97,6 +98,12 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
   // actions
   const onStream = () => present(modalC)
   const onReferee = () => {
+    console.log('matchId:', actionSheet.matchId, typeof actionSheet.matchId);
+    console.log('matchPin:', actionSheet.matchPin, typeof actionSheet.matchPin);
+    console.log('params:', {
+      matchId: actionSheet.matchId,
+      pin: actionSheet.matchPin,
+    });
     dismiss(modalA)
     navigation.navigate('PinCode', {
       matchId: actionSheet.matchId,
@@ -105,24 +112,9 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
   }
   const onPoolstat = () => Linking.openURL(psLink)
   const onSubmit = async () => {
-    await setMatchData({
-      matchId: actionSheet.matchId,
-      compId: actionSheet.compId,
-      pin: actionSheet.matchPin,
-      title: streamTitle,
-      local: !!actionSheet.local,
-      description: desc,
-      destination: dest,
-      targetId: sel?.id,
-    })
-    await setActionSheet({})
     modalA.current?.dismiss();
     dismissAll();
-    navigation.navigate('GoLive')
-    setIsLoading(true)
-  }
-  const onCloseQR = async () => {
-    await setMatchData({
+    navigation.navigate('GoLive', {
       matchId: actionSheet.matchId,
       compId: actionSheet.compId,
       pin: actionSheet.matchPin,
@@ -132,11 +124,24 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       destination: dest,
       targetId: sel?.id,
     })
+    setIsLoading(true)
     await setActionSheet({})
+  }
+  const onCloseQR = async () => {
     await setShowQR(false)
     modalF.current?.dismiss()
-    navigation.navigate('GoLive')
+    navigation.navigate('GoLive', {
+      matchId: actionSheet.matchId,
+      compId: actionSheet.compId,
+      pin: actionSheet.matchPin,
+      title: streamTitle,
+      local: !!actionSheet.local,
+      description: desc,
+      destination: dest,
+      targetId: sel?.id,
+    })
     setIsLoading(true)
+    await setActionSheet({})
   }
 
   const copyToClipboard = async (copyText: any) => {
@@ -177,8 +182,9 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       {/* Main Sheet */}
       <BottomSheetModal
         ref={modalA}
-        snapPoints={['40%']}
-        enableDynamicSizing={false}
+        // snapPoints={['40%']}
+        maxDynamicContentSize={550}
+        enableDynamicSizing={true}
         backgroundStyle={{
 
           backgroundColor: colors.secondary,
@@ -200,8 +206,9 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       {/* Destination Selection */}
       <BottomSheetModal
         ref={modalC}
-        snapPoints={['55%']}
-        enableDynamicSizing={false}
+        // snapPoints={['55%']}
+        maxDynamicContentSize={550}
+        enableDynamicSizing={true}
         backgroundStyle={{
 
           backgroundColor: colors.secondary,
@@ -238,8 +245,9 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       {/* Title & Description */}
       <BottomSheetModal
         ref={modalD}
-        snapPoints={snapPointsD}
-        enableDynamicSizing={false}
+        // snapPoints={snapPointsD}
+        maxDynamicContentSize={550}
+        enableDynamicSizing={true}
         backgroundStyle={{
 
           backgroundColor: colors.secondary,
@@ -267,8 +275,9 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       {/* Match Pin */}
       <BottomSheetModal
         ref={modalE}
-        snapPoints={['52%']}
-        enableDynamicSizing={false}
+        // snapPoints={['52%']}
+        maxDynamicContentSize={550}
+        enableDynamicSizing={true}
         backgroundStyle={{
 
           backgroundColor: colors.secondary,
@@ -297,8 +306,8 @@ const PoolstatSheet = forwardRef<PoolstatSheetHandle>((_props, ref) => {
       <BottomSheetModal
         ref={modalF}
         detached
-        snapPoints={['75%']}
-        bottomInset={150}
+        // snapPoints={['75%']}
+        bottomInset={bottomInset}
         enablePanDownToClose
         handleIndicatorStyle={{
           backgroundColor: colors.onPrimary,

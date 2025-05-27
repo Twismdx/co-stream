@@ -1,7 +1,9 @@
 package com.costream
 
 import android.app.Application
+import android.webkit.WebView
 import android.content.res.Configuration
+import expo.modules.updates.UpdatesController
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -44,10 +46,14 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    WebView.setWebContentsDebuggingEnabled(true)
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       load()
+    }
+    if (!BuildConfig.DEBUG) {
+      UpdatesController.initialize(this);
     }
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
   }

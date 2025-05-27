@@ -6,7 +6,6 @@ import React, { useState, useEffect } from "react";
 import SettingsScreen from "../../screens/SettingsScreen";
 import LoginScreen from "../../screens/LoginScreen";
 import { View, Dimensions } from "react-native";
-import CreateChallengeScreen from "@/screens/CreateChallengeScreen";
 import SelectedUserProfileScreen from "@/screens/SelectedUserProfileScreen";
 import ProfileScreen from "../../screens/ProfileScreen";
 import MainTabNavigator from "../navigators/MainTabNavigator";
@@ -17,7 +16,7 @@ import PendingMatches from "../profile/PendingMatches";
 import RegisterScreen from "../../screens/RegisterScreen";
 import PinCode from "../modals/PinCode";
 import { navigation } from "@/AppContent";
-
+import OnboardingScreen from "../../screens/OnboardingScreen";
 const Stack = createStackNavigator();
 
 const StackNavigator = () => {
@@ -79,6 +78,11 @@ const StackNavigator = () => {
           <Stack.Screen
             name="PinCode"
             component={PinCode}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
             options={{ headerShown: false }}
           />
         </Stack.Group>

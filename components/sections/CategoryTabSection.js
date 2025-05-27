@@ -25,7 +25,16 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import Loader from "../utils/ActivityLoader";
-import { useAnimatedRef, useScrollViewOffset } from "react-native-reanimated";
+import {
+  useAnimatedRef,
+  useAnimatedScrollHandler,
+  useSharedValue,
+  withTiming,
+  runOnJS,
+  useDerivedValue,
+  interpolate,
+  Easing,
+} from "react-native-reanimated";
 import Animated from "react-native-reanimated";
 import {
   upcomingWindowWidth,
@@ -43,6 +52,7 @@ import {
   liveCardWidth,
 } from "../cards/MatchCardLive";
 import AutoCompleteInput from "~/components/texts/AutoCompleteInput";
+import Carousel from "react-native-reanimated-carousel";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -66,11 +76,15 @@ const CategoryTabSection = ({
 }) => {
   const { theme, user, setIsLiveMatches } = useGlobalContext();
   const activeColors = theme.colors[theme.mode];
+  const upcomingProgress = useSharedValue(0);
+  const challengeProgress = useSharedValue(0);
+  const liveProgress = useSharedValue(0);
 
   // Refs for scrolling/searching
   const categoriesScrollViewRef = useRef(null);
   const upcomingSearchRef = useRef(null);
   const liveSearchRef = useRef(null);
+  const categoryPositions = useRef({});
 
   // Local state for search filters (if needed)
   const [selectedCategory, setSelectedCategory] = useState("Live matches");
@@ -81,13 +95,54 @@ const CategoryTabSection = ({
   const [showSearchLive, setShowSearchLive] = useState(false);
 
   // Animated Refs for scrolling content
-  const upcomingAnimatedRef = useAnimatedRef();
+  const upcomingRef = useRef(null);
   const challengeAnimatedRef = useAnimatedRef();
   const liveAnimatedRef = useAnimatedRef();
 
-  const upcomingScrollOffset = useScrollViewOffset(upcomingAnimatedRef);
-  const challengeScrollOffset = useScrollViewOffset(challengeAnimatedRef);
-  const liveScrollOffset = useScrollViewOffset(liveAnimatedRef);
+  // Use shared values for scroll positions
+  const upcomingScrollOffset = useSharedValue(0);
+  const challengeScrollOffset = useSharedValue(0);
+  const liveScrollOffset = useSharedValue(0);
+
+  // Animation for search bar
+  const searchBarOpacity = useSharedValue(0);
+  const searchBarHeight = useSharedValue(0);
+
+  const liveScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      liveScrollOffset.value = event.contentOffset.x;
+    },
+    onMomentumEnd: (event) => {
+      const activeIndex = Math.round(event.contentOffset.x / liveCardWidth);
+      const snapPoint = activeIndex * liveCardWidth;
+
+      if (Math.abs(event.contentOffset.x - snapPoint) > 1) {
+        liveAnimatedRef.current?.scrollTo({
+          x: snapPoint,
+          animated: true,
+        });
+      }
+    },
+  });
+
+  const challengeScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      challengeScrollOffset.value = event.contentOffset.x;
+    },
+    onMomentumEnd: (event) => {
+      const activeIndex = Math.round(
+        event.contentOffset.x / challengeCardWidth
+      );
+      const snapPoint = activeIndex * challengeCardWidth;
+
+      if (Math.abs(event.contentOffset.x - snapPoint) > 1) {
+        challengeAnimatedRef.current?.scrollTo({
+          x: snapPoint,
+          animated: true,
+        });
+      }
+    },
+  });
 
   // --- Process stats for Live/Upcoming Matches ---
   // Convert stats (if provided) to an array of component data.
@@ -225,7 +280,31 @@ const CategoryTabSection = ({
     setSuggestion(matchingSuggestion || "");
   };
 
-  const handleCategoryPress = (category, index) => {
+  const toggleSearchUpcoming = (show) => {
+    setShowSearchUpcoming(show);
+    searchBarOpacity.value = withTiming(show ? 1 : 0, { duration: 200 });
+    searchBarHeight.value = withTiming(show ? 50 : 0, { duration: 200 });
+
+    if (show) {
+      setTimeout(() => {
+        upcomingSearchRef.current?.focus();
+      }, 100);
+    }
+  };
+
+  const toggleSearchLive = (show) => {
+    setShowSearchLive(show);
+    searchBarOpacity.value = withTiming(show ? 1 : 0, { duration: 200 });
+    searchBarHeight.value = withTiming(show ? 50 : 0, { duration: 200 });
+
+    if (show) {
+      setTimeout(() => {
+        liveSearchRef.current?.focus();
+      }, 100);
+    }
+  };
+
+  const handleCategoryPress = useCallback((category, index) => {
     setSelectedCategory(category);
     const screenWidth = Dimensions.get("window").width;
     const { x: categoryX, width: categoryWidth } = categoryPositions.current[
@@ -233,19 +312,26 @@ const CategoryTabSection = ({
     ] || { x: 0, width: 0 };
     const scrollToX = categoryX - screenWidth / 2 + categoryWidth / 2;
     categoriesScrollViewRef.current?.scrollTo({ x: scrollToX, animated: true });
-  };
+  }, []);
 
   const upcomingListPadding = useMemo(() => {
     return upcomingWindowWidth - upcomingCardWidth;
-  }, [upcomingWindowWidth, upcomingCardWidth]);
+  }, []);
 
   const challengeListPadding = useMemo(() => {
     return challengeWindowWidth - challengeCardWidth;
-  }, [challengeWindowWidth, challengeCardWidth]);
+  }, []);
 
   const liveListPadding = useMemo(() => {
     return liveWindowWidth - liveCardWidth;
-  }, [liveWindowWidth, liveCardWidth]);
+  }, []);
+
+  // Handle card visibility
+  const updateCategoryVisibility = useCallback((event) => {
+    // This function would handle tracking which sections are visible
+    // and update the selected category accordingly
+    // Implementation would depend on your specific requirements
+  }, []);
 
   return (
     <View style={{ flexDirection: "column" }}>
@@ -266,12 +352,7 @@ const CategoryTabSection = ({
             />
           </View>
           <TouchableOpacity
-            onPress={() => {
-              setShowSearchUpcoming(true);
-              setTimeout(() => {
-                upcomingSearchRef.current?.focus();
-              }, 100);
-            }}
+            onPress={() => toggleSearchUpcoming(true)}
             style={{ marginLeft: 10, marginTop: -2.5 }}
           >
             <Ionicons name="search-circle-outline" size={30} color="white" />
@@ -279,7 +360,24 @@ const CategoryTabSection = ({
         </View>
         {/* (Optional) Search Bar for Upcoming Matches */}
         {showSearchUpcoming && (
-          <View style={styles.searchBarContainer}>
+          <Animated.View
+            style={[
+              styles.searchBarContainer,
+              {
+                opacity: searchBarOpacity,
+                height: searchBarHeight,
+                transform: [
+                  {
+                    translateY: interpolate(
+                      searchBarOpacity.value,
+                      [0, 1],
+                      [-10, 0]
+                    ),
+                  },
+                ],
+              },
+            ]}
+          >
             <TextInput
               ref={upcomingSearchRef}
               style={[
@@ -298,77 +396,84 @@ const CategoryTabSection = ({
                 onPress={() => {
                   setSearchQueryUpcoming("");
                   // Reset search if needed
-                  setShowSearchUpcoming(false);
+                  toggleSearchUpcoming(false);
                 }}
               >
                 <Ionicons name="close-circle" size={24} color="gray" />
               </TouchableOpacity>
             ) : null}
-          </View>
+          </Animated.View>
         )}
         <View
-          style={{ paddingTop: 10, height: upcomingCardHeight, width: "100%" }}
+          style={{
+            paddingTop: selectedOrg ? 10 : 45,
+            justifyContent: selectedOrg ? null : "center",
+            alignItems: selectedOrg ? null : "center",
+          }}
         >
-          <Animated.ScrollView
-            ref={upcomingAnimatedRef}
-            horizontal
-            snapToInterval={upcomingCardWidth}
-            decelerationRate="fast"
-            showsHorizontalScrollIndicator={false}
-            scrollEventThrottle={16}
-            disableIntervalMomentum={true}
-            contentContainerStyle={{
-              width: selectedOrg
-                ? upcomingCardWidth * upcomingArray.length + upcomingListPadding
-                : "100%",
-              justifyContent: !selectedOrg ? "center" : "",
-              marginTop: !selectedOrg ? 15 : "",
-            }}
-          >
-            {selectedOrg == null ? (
-              <KeyboardAvoidingView style={{ flex: 1 }}>
-                <View styles={styles.categoryContainer}>
-                  <View style={styles.inputContainer}>
-                    <StyledText
-                      small={false}
-                      big={false}
-                      text={""}
-                      bold={false}
-                      color={activeColors.accent}
-                      sans={false}
-                      style={{ textAlign: "center", paddingBottom: 10 }}
-                    >
-                      Enter Organization Name
-                    </StyledText>
-                    <AutoCompleteInput />
-                  </View>
-                </View>
-              </KeyboardAvoidingView>
-            ) : (
-              upcomingArray.map((item, index) => (
+          {selectedOrg === null ? (
+            <View style={styles.categoryContainer}>
+              <View style={styles.inputContainer}>
+                <StyledText
+                  color={activeColors.accent}
+                  style={{ textAlign: "center", paddingBottom: 10 }}
+                >
+                  Enter Organization Name
+                </StyledText>
+                <AutoCompleteInput />
+              </View>
+            </View>
+          ) : (
+            <Carousel
+              ref={upcomingRef}
+              data={upcomingArray}
+              width={upcomingCardWidth}
+              height={upcomingCardHeight}
+              autoPlayInterval={2000}
+              loop={true}
+              snapEnabled={true}
+              mode="parallax"
+              modeConfig={{
+                parallaxScrollingScale: 0.9,
+                parallaxScrollingOffset: 50,
+                parallaxAdjacentItemScale: 0.7,
+              }}
+              overscrollEnabled
+              // keep your style logic
+              style={{
+                width: selectedOrg ? upcomingWindowWidth : "100%",
+                justifyContent: "center",
+                marginTop: !selectedOrg ? 15 : undefined,
+              }}
+              // progress callback
+              onProgressChange={(offset) => {
+                upcomingProgress.value = offset;
+              }}
+              // the new renderItem API
+              renderItem={({ item, index }) => (
                 <MatchCardUpcoming
                   upcomingCardWidth={upcomingCardWidth}
                   upcomingCardHeight={upcomingCardHeight}
                   index={index}
-                  key={index}
-                  upcomingScrollOffset={upcomingScrollOffset}
-                  home={item?.home?.teamname ?? "N/A"}
-                  away={item?.away?.teamname ?? "N/A"}
-                  homeScore={item?.home?.framescore ?? 0}
-                  awayScore={item?.away?.framescore ?? 0}
-                  matchTime={formatMatchTime(item?.matchtime)}
-                  homePoints={item?.home?.framepoints ?? 0}
-                  awayPoints={item?.away?.framepoints ?? 0}
-                  hasMatchPoints={item?.hasmatchpoints ?? false}
-                  matchId={matchKeys[index]}
+                  key={item.key}
+                  // upcomingScrollOffset={upcomingScrollOffset}
+                  home={item.home.teamname ?? "N/A"}
+                  away={item.away.teamname ?? "N/A"}
+                  homeScore={item.home.framescore ?? 0}
+                  awayScore={item.away.framescore ?? 0}
+                  matchTime={formatMatchTime(item.matchtime)}
+                  homePoints={item.home.framepoints ?? 0}
+                  awayPoints={item.away.framepoints ?? 0}
+                  hasMatchPoints={item.hasmatchpoints}
+                  matchId={item.key}
                   stats={stats}
                   orgCode={orgCode}
                   compId={mapStats[0]?.[0] || ""}
                   openPoolstatA={openPoolstatA}
                 />
-              ))
-            )}
-          </Animated.ScrollView>
+              )}
+            />
+          )}
         </View>
       </View>
 
@@ -389,19 +494,31 @@ const CategoryTabSection = ({
             />
           </View>
           <TouchableOpacity
-            onPress={() => {
-              setShowSearchLive(true);
-              setTimeout(() => {
-                liveSearchRef.current?.focus();
-              }, 100);
-            }}
+            onPress={() => toggleSearchLive(true)}
             style={{ marginLeft: 10, marginTop: 0 }}
           >
             <Ionicons name="search-circle-outline" size={30} color="white" />
           </TouchableOpacity>
         </View>
         {showSearchLive && (
-          <View style={styles.searchBarContainer}>
+          <Animated.View
+            style={[
+              styles.searchBarContainer,
+              {
+                opacity: searchBarOpacity,
+                height: searchBarHeight,
+                transform: [
+                  {
+                    translateY: interpolate(
+                      searchBarOpacity.value,
+                      [0, 1],
+                      [-10, 0]
+                    ),
+                  },
+                ],
+              },
+            ]}
+          >
             <TextInput
               ref={liveSearchRef}
               style={[
@@ -419,13 +536,13 @@ const CategoryTabSection = ({
               <TouchableOpacity
                 onPress={() => {
                   setSearchQueryLive("");
-                  setShowSearchLive(false);
+                  toggleSearchLive(false);
                 }}
               >
                 <Ionicons name="close-circle" size={24} color="gray" />
               </TouchableOpacity>
             ) : null}
-          </View>
+          </Animated.View>
         )}
         <View style={{ height: liveCardHeight, width: "100%" }}>
           <Animated.ScrollView
@@ -435,7 +552,9 @@ const CategoryTabSection = ({
             decelerationRate="fast"
             showsHorizontalScrollIndicator={false}
             scrollEventThrottle={16}
+            onScroll={liveScrollHandler}
             disableIntervalMomentum={true}
+            removeClippedSubviews={false}
             contentContainerStyle={{
               width: liveCardWidth * liveArray.length + liveListPadding,
             }}
@@ -493,7 +612,9 @@ const CategoryTabSection = ({
             decelerationRate="fast"
             showsHorizontalScrollIndicator={false}
             scrollEventThrottle={16}
+            onScroll={challengeScrollHandler}
             disableIntervalMomentum={true}
+            removeClippedSubviews={false}
             contentContainerStyle={{
               width:
                 challengeCardWidth * challengeData.length +
@@ -538,15 +659,15 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 10,
     marginHorizontal: 10,
-    height: 30,
+    overflow: "hidden",
   },
   searchBar: {
+    flex: 1,
     height: 30,
     borderRadius: 15,
     marginVertical: 10,
     marginHorizontal: 10,
     fontSize: 16,
-    maxWidth: screenWidth * 0.5,
     backgroundColor: "white",
   },
   categoryContainer: {
@@ -560,4 +681,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CategoryTabSection;
+export default React.memo(CategoryTabSection);

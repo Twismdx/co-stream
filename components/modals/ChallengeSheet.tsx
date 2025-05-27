@@ -8,7 +8,7 @@ import React, {
     useRef,
     useState,
 } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, useWindowDimensions } from 'react-native'
 import BottomSheet, {
     BottomSheetModal,
     BottomSheetHandleProps,
@@ -68,6 +68,9 @@ const ChallengeSheet = forwardRef((_, ref) => {
     const [pagesOrGroups, setPagesOrGroups] = useState<any[]>([])
     const [selectedItem, setSelectedItem] = useState<any>(null)
     const [showQR, setShowQR] = useState(false)
+    const { height: screenHeight } = useWindowDimensions();
+    const qrHeight = 355;
+    const bottomInset = (screenHeight - qrHeight) / 2
 
     useImperativeHandle(ref, () => ({
         openSetup: () => modalA.current?.present(),
@@ -120,7 +123,8 @@ const ChallengeSheet = forwardRef((_, ref) => {
     }
 
     const onSubmitStream = async () => {
-        await setMatchData({
+        modalE.current?.dismiss();
+        navigation.navigate('GoLive', {
             challengeId: actionSheet.challengeId,
             pin: actionSheet.matchPin,
             title: streamTitle,
@@ -129,10 +133,8 @@ const ChallengeSheet = forwardRef((_, ref) => {
             destination: dest,
             targetId: selectedItem?.id,
         })
-        await setActionSheet({})
-        modalE.current?.dismiss();
-        navigation.navigate('GoLive')
         setIsLoading(true)
+        await setActionSheet({})
     }
 
     const copyToClipboard = async (copyText: any) => {
@@ -144,9 +146,10 @@ const ChallengeSheet = forwardRef((_, ref) => {
     }
 
     const onCloseQR = async () => {
-        await setMatchData({
-            matchId: actionSheet.matchId,
-            compId: actionSheet.compId,
+        await setShowQR(false)
+        modalF.current?.dismiss()
+        navigation.navigate('GoLive', {
+            challengeId: actionSheet.challengeId,
             pin: actionSheet.matchPin,
             title: streamTitle,
             local: !!actionSheet.local,
@@ -154,11 +157,8 @@ const ChallengeSheet = forwardRef((_, ref) => {
             destination: dest,
             targetId: selectedItem?.id,
         })
-        await setActionSheet({})
-        await setShowQR(false)
-        modalF.current?.dismiss()
-        navigation.navigate('GoLive')
         setIsLoading(true)
+        await setActionSheet({})
     }
 
     const renderHeader = useCallback(
@@ -184,8 +184,9 @@ const ChallengeSheet = forwardRef((_, ref) => {
             {/* A: Match Setup */}
             <BottomSheetModal
                 ref={modalA}
-                snapPoints={['40%']}
-                enableDynamicSizing={false}
+                // snapPoints={['40%']}
+                maxDynamicContentSize={550}
+                enableDynamicSizing={true}
                 backgroundStyle={{
 
                     backgroundColor: colors.secondary,
@@ -210,8 +211,9 @@ const ChallengeSheet = forwardRef((_, ref) => {
             {/* B: First to break */}
             <BottomSheetModal
                 ref={modalB}
-                snapPoints={['45%']}
-                enableDynamicSizing={false}
+                // snapPoints={['45%']}
+                maxDynamicContentSize={550}
+                enableDynamicSizing={true}
                 backgroundStyle={{
 
                     backgroundColor: colors.secondary,
@@ -241,8 +243,9 @@ const ChallengeSheet = forwardRef((_, ref) => {
             {/* C: Share To */}
             <BottomSheetModal
                 ref={modalC}
-                snapPoints={['55%']}
-                enableDynamicSizing={false}
+                // snapPoints={['55%']}
+                maxDynamicContentSize={550}
+                enableDynamicSizing={true}
                 backgroundStyle={{
 
                     backgroundColor: colors.secondary,
@@ -279,8 +282,9 @@ const ChallengeSheet = forwardRef((_, ref) => {
             {/* D: Title & Description */}
             <BottomSheetModal
                 ref={modalD}
-                snapPoints={snapPointsD}
-                enableDynamicSizing={false}
+                // snapPoints={snapPointsD}
+                maxDynamicContentSize={550}
+                enableDynamicSizing={true}
                 backgroundStyle={{
 
                     backgroundColor: colors.secondary,
@@ -307,8 +311,9 @@ const ChallengeSheet = forwardRef((_, ref) => {
             {/* E: Match Pin */}
             <BottomSheetModal
                 ref={modalE}
-                snapPoints={['52%']}
-                enableDynamicSizing={false}
+                // snapPoints={['52%']}
+                maxDynamicContentSize={550}
+                enableDynamicSizing={true}
                 backgroundStyle={{
 
                     backgroundColor: colors.secondary,
@@ -337,8 +342,10 @@ const ChallengeSheet = forwardRef((_, ref) => {
             <BottomSheetModal
                 ref={modalF}
                 detached
-                snapPoints={['75%']}
-                bottomInset={150}
+                // snapPoints={['75%']}
+                enableDynamicSizing={true}
+                maxDynamicContentSize={550}
+                bottomInset={bottomInset}
                 enablePanDownToClose
                 handleIndicatorStyle={{ backgroundColor: colors.foreground }}
                 backgroundStyle={{

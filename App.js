@@ -26,11 +26,7 @@ import { AppState } from "react-native";
 import messaging from "@react-native-firebase/messaging";
 import { PortalProvider, PortalHost } from "@gorhom/portal";
 import { PortalHost as PHost } from "@rn-primitives/portal";
-import notifee, {
-  EventType,
-  AndroidImportance,
-  AuthorizationStatus,
-} from "@notifee/react-native";
+
 import { getCurrentUser, supabase } from "./components/utils/supabase";
 import ActivityLoader from "./components/utils/ActivityLoader";
 import AppContent from "./AppContent";
@@ -47,6 +43,10 @@ import {
   removeObject,
 } from "~/components/utils/AsyncStorage";
 import { TourGuideProvider } from "rn-tourguide";
+import notifee, {
+  AndroidImportance,
+  AuthorizationStatus,
+} from "@notifee/react-native";
 
 Sentry.init({
   dsn: "https://0b65b2de868bbb143f80448f0fc59014@o4509216306757632.ingest.us.sentry.io/4509216307806208",

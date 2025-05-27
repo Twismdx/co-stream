@@ -1,16 +1,11 @@
-import React, {
-  useContext,
-  useState,
-  useEffect,
-  startTransition,
-  useMemo,
-} from "react";
+import React from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   Text,
   Dimensions,
+  Platform,
 } from "react-native";
 import { useGlobalContext } from "../timer/context";
 import { useNavigation } from "@react-navigation/native";
@@ -18,6 +13,7 @@ import Animated, {
   Extrapolation,
   interpolate,
   useAnimatedStyle,
+  useDerivedValue,
 } from "react-native-reanimated";
 
 export const liveWindowWidth = Dimensions.get("window").width;
@@ -47,24 +43,69 @@ const MatchCardLive = ({
   liveScrollOffset,
   openPoolstatA,
 }) => {
-  const {
-    liveStats,
-    selectedMatch,
-    setSelectedMatch,
-    theme,
-    showModal,
-    setShowModal,
-    setShowModal1,
-    streamTitle,
-    setStreamTitle,
-    desc,
-    setDesc,
-    actionSheet,
-    setActionSheet,
-  } = useGlobalContext();
+  const { theme, setActionSheet, setStreamTitle, setDesc } = useGlobalContext();
   const activeColors = theme.colors[theme.mode];
-  const navigation = useNavigation();
-  const handleData = () => {
+
+  // Pure shared value for position, no context/hook access in worklet
+  const activeIndex = useDerivedValue(
+    () => Math.round((liveScrollOffset.value / liveCardWidth) * 10) / 10,
+    [liveScrollOffset]
+  );
+
+  const rContainerStyle = useAnimatedStyle(() => {
+    const paddingLeft = (liveWindowWidth - liveCardWidth) / 4;
+    const translateX = interpolate(
+      activeIndex.value,
+      [index - 2, index - 1, index, index + 1],
+      [120, 50, 0, -liveCardWidth - paddingLeft * 2],
+      Extrapolation.CLAMP
+    );
+    const scale = Math.max(
+      0.88,
+      interpolate(
+        activeIndex.value,
+        [index - 2, index - 1, index, index + 1],
+        [0.88, 0.97, 1, 1],
+        Extrapolation.CLAMP
+      )
+    );
+    return {
+      left: paddingLeft,
+      transform: [
+        { translateX: Math.round(liveScrollOffset.value + translateX) },
+        { scale: parseFloat(scale.toFixed(3)) },
+      ],
+      zIndex: 100 + index,
+    };
+  });
+
+  const shadowStyle = useAnimatedStyle(() => {
+    const scale = Math.max(
+      0.88,
+      interpolate(
+        activeIndex.value,
+        [index - 2, index - 1, index, index + 1],
+        [0.88, 0.97, 1, 1],
+        Extrapolation.CLAMP
+      )
+    );
+    return scale > 0.995
+      ? Platform.select({
+          ios: {
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 4 },
+            shadowColor: "#fff",
+          },
+          android: {
+            elevation: 7,
+            shadowOpacity: 0,
+          },
+        })
+      : { elevation: 0, shadowOpacity: 0 };
+  });
+
+  const handleData = async () => {
     setActionSheet({
       show: true,
       matchTime: matchTime,
@@ -77,46 +118,19 @@ const MatchCardLive = ({
     openPoolstatA();
   };
 
-  const rContainerStyle = useAnimatedStyle(() => {
-    const activeIndex = liveScrollOffset.value / liveCardWidth;
-    const paddingLeft = (liveWindowWidth - liveCardWidth) / 4;
-    const translateX = interpolate(
-      activeIndex,
-      [index - 2, index - 1, index, index + 1],
-      [120, 60, 0, -liveCardWidth - paddingLeft * 2],
-      Extrapolation.CLAMP
-    );
-
-    const scale = interpolate(
-      activeIndex,
-      [index - 2, index - 1, index, index + 1],
-      [0.8, 0.9, 1, 1],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      left: paddingLeft,
-      transform: [
-        {
-          translateX: liveScrollOffset.value + translateX,
-        },
-        { scale },
-      ],
-    };
-  }, []);
-
   return (
     <Animated.View
       style={[
-        {
-          zIndex: -index,
-        },
+        styles.container,
         rContainerStyle,
+        shadowStyle,
+        { backgroundColor: activeColors.secondary },
       ]}
     >
       <TouchableOpacity
-        style={[styles.container, { backgroundColor: activeColors.secondary }]}
+        style={{ flex: 1 }}
         onPress={handleData}
+        activeOpacity={0.86}
       >
         <View style={styles.contentContainer}>
           <View style={styles.teamRow}>
@@ -180,13 +194,8 @@ const styles = StyleSheet.create({
     height: (liveCardWidth / 5) * 2,
     borderRadius: 30,
     margin: 10,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
     position: "absolute",
+    overflow: "visible",
   },
   contentContainer: {
     paddingVertical: 15,
@@ -198,6 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingTop: 16,
     width: "100%",
     gap: 10,
   },

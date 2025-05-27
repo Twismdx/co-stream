@@ -305,35 +305,21 @@ class CameraFragment : Fragment(), ConnectChecker, View.OnTouchListener {
         if (isAdded) mainHandler.post { genericStream.getGlInterface().clearFilters() }
     }
 
-    fun setMatchOverlay(compId: String, matchId: String, challenge: Boolean, isLandscape: Boolean) {
+    fun setMatchOverlay(compId: String?, matchId: String?, challenge: Boolean, isLandscape: Boolean) {
         mainHandler.post {
             overlay.setBackgroundColor(0)
             val settings = overlay.settings
             settings.javaScriptEnabled = true
             settings.loadWithOverviewMode = false
             settings.useWideViewPort = false
-
-            // Set a WebViewClient with the correct method signature and import
-            overlay.webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView, url: String) {
-                    super.onPageFinished(view, url)
-                    Log.d("setMatchOverlay", "Loaded URL: $url")
-                }
-            }
-
             overlay.webChromeClient = object : WebChromeClient() {
-                override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
-                    Log.d(
-                        "WebView", 
-                        "${consoleMessage.message()} -- From line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}"
-                    )
-                    return true
-                }
+            override fun onConsoleMessage(cm: ConsoleMessage): Boolean {
+                Log.d("WebViewJS", "${cm.message()}  -- from ${cm.sourceId()}:${cm.lineNumber()}")
+                return true    // true = we handled it
+            }
             }
 
-
-            val fullUrl = "$urlOne?compId=$compId&matchId=$matchId&challenge=$challenge&isLandscape=$isLandscape"
-            overlay.loadUrl(fullUrl)
+            overlay.loadUrl("$urlOne?compId=$compId&matchId=$matchId&challenge=$challenge&isLandscape=$isLandscape")
 
             androidViewFilterRender = AndroidViewFilterRender()
             androidViewFilterRender.setView(overlay)
@@ -355,6 +341,12 @@ class CameraFragment : Fragment(), ConnectChecker, View.OnTouchListener {
         settings.javaScriptEnabled = true
         settings.loadWithOverviewMode = false
         settings.useWideViewPort = false
+        overlay.webChromeClient = object : WebChromeClient() {
+        override fun onConsoleMessage(cm: ConsoleMessage): Boolean {
+            Log.d("WebViewJS", "${cm.message()}  -- from ${cm.sourceId()}:${cm.lineNumber()}")
+            return true    // true = we handled it
+        }
+        }
 
         overlay.loadUrl("$urlOne?challengeId=$challengeId&challenge=$challenge&isLandscape=$isLandscape")
 
