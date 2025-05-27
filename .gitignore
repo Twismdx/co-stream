@@ -3,7 +3,8 @@
 # dependencies
 node_modules/
 ./costream-4720d.json
-
+.google-service-account.json
+.google-services.json
 # Expo
 .expo/
 dist/
@@ -41,3 +42,4 @@ app-example
 .env.local
 service_account_key.json
 android/my-upload-key.keystore
+"android/google-services.json" 
