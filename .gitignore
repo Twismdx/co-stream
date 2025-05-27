@@ -44,3 +44,5 @@ service_account_key.json
 android/my-upload-key.keystore
 "android/google-services.json" 
 bfg.jar
+
+.env.local

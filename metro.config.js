@@ -2,19 +2,19 @@
 
 const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 
-const sentryConfig = getSentryExpoConfig(__dirname, {
+const config = getSentryExpoConfig(__dirname, {
   isCSSEnabled: true,
 });
-sentryConfig.resolver.unstable_enablePackageExports = false;
+config.resolver.unstable_enablePackageExports = false;
 
 module.exports = {
   // start with everything Sentry gave you
-  ...sentryConfig,
+  ...config,
 
   // now override / extend transformer
   transformer: {
     // keep any Sentry transformer settings
-    ...sentryConfig.transformer,
+    ...config.transformer,
 
     // add your own getTransformOptions
     getTransformOptions: async () => ({
@@ -28,13 +28,12 @@ module.exports = {
   // now override / extend resolver
   resolver: {
     // keep any Sentry resolver settings
-    ...sentryConfig.resolver,
+    ...config.resolver,
 
     // add your extraNodeModules
     extraNodeModules: {
       // preserve any existing extraNodeModules
-      ...((sentryConfig.resolver && sentryConfig.resolver.extraNodeModules) ||
-        {}),
+      ...((config.resolver && config.resolver.extraNodeModules) || {}),
 
       // point Metro at valueUnpacker for Reanimated v2
       valueUnpacker:
