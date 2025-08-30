@@ -1,10 +1,13 @@
 import React, { useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, LogBox } from 'react-native';
-import BottomSheet, {
-  BottomSheetView,
+import { View, Text, TouchableOpacity } from 'react-native';
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetCloseTrigger,
   BottomSheetFlatList,
-  BottomSheetBackdrop,
-} from '@gorhom/bottom-sheet';
+  useBottomSheet,
+} from '../ui/bottomsheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from '../CustomButton';
 import { useGlobalContext } from '../timer/context';
@@ -62,12 +65,7 @@ const SelectBox = () => {
     checkSelectedSource();
   }, [getSelectedSource, setSelectedSource]);
 
-  // Ignore specific LogBox warnings
-  useEffect(() => {
-    LogBox.ignoreLogs([
-      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.',
-    ]);
-  }, []);
+  // LogBox.ignoreLogs removed - issue fixed by using BottomSheetFlatList instead of BottomSheetView
 
   const styles = {
     container: {
@@ -97,13 +95,13 @@ const SelectBox = () => {
   };
 
   const renderSheetItem = useCallback(
-    ({ id, sourcename }, index) => (
+    ({ item, index }) => (
       <TouchableOpacity
         key={index}
         style={styles.sheetItem}
-        onPress={() => setSrc(id)}
+        onPress={() => setSrc(item.id)}
       >
-        <Text style={styles.actionText}>{sourcename}</Text>
+        <Text style={styles.actionText}>{item.sourcename}</Text>
       </TouchableOpacity>
     ),
     [setSrc, styles.actionText, styles.sheetItem]
@@ -128,12 +126,16 @@ const SelectBox = () => {
                 <Text style={styles.actionText}>Close</Text>
               </BottomSheetCloseTrigger>
             </BottomSheetHeader>
-            <BottomSheetView>
-              {sources.map(renderSheetItem)}
-              <TouchableOpacity style={styles.sheetItem} onPress={close}>
-                <Text style={styles.actionText}>Cancel</Text>
-              </TouchableOpacity>
-            </BottomSheetView>
+            <BottomSheetFlatList
+              data={sources}
+              renderItem={renderSheetItem}
+              keyExtractor={(item) => item.id}
+              ListFooterComponent={
+                <TouchableOpacity style={styles.sheetItem} onPress={close}>
+                  <Text style={styles.actionText}>Cancel</Text>
+                </TouchableOpacity>
+              }
+            />
           </BottomSheetContent>
         </BottomSheet>
     </View>
